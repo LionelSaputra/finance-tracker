@@ -2,7 +2,7 @@
 
 Aplikasi keuangan pribadi untuk satu pengguna: catat pemasukan/pengeluaran, budget per kategori, target tabungan, saran (aturan + AI Claude), angka "dana aman untuk trading", dan API bertoken untuk aplikasi trading terpisah (belum dibuat).
 
-**Baca `docs/plan.md` sebelum mengerjakan apa pun.** Isinya rancangan yang sudah disetujui (bagian "Rancangan") dan rencana implementasi per task (bagian "Implementation Plan").
+**Baca `docs/superpowers/plans/2026-11-27-finance-app.md` sebelum mengerjakan apa pun.** Isinya rancangan yang sudah disetujui (bagian "Rancangan") dan rencana implementasi per task (bagian "Implementation Plan").
 
 ## Ringkasan keputusan
 
@@ -15,6 +15,8 @@ Aplikasi keuangan pribadi untuk satu pengguna: catat pemasukan/pengeluaran, budg
 
 ## Status
 
-Rencana disetujui 2026-11-27. Implementasi belum dimulai — mulai dari "Langkah 0" di `docs/plan.md`.
+Rencana disetujui 2026-11-27. Implementasi berjalan di branch `feat/finance-v1`; progres per task tercatat di commit git.
 
-Catatan Langkah 0: `create-next-app` menolak folder yang tidak kosong, jadi scaffold di subfolder sementara lalu pindahkan isinya ke folder ini (jangan timpa `CLAUDE.md` dan `docs/`).
+## Next.js
+
+@AGENTS.md
