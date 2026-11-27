@@ -20,3 +20,7 @@
  GET / 200 in 19ms (next.js: 2ms, application-code: 17ms)
  POST /login 200 in 90ms (next.js: 0.9ms, application-code: 89ms)
   └─ ƒ login({"error":"Password salah"}, {}) in 46ms app/(auth)/login/actions.ts
+ GET / 200 in 20ms (next.js: 1.5ms, application-code: 18ms)
+ GET / 200 in 20ms (next.js: 1.2ms, application-code: 18ms)
+ GET / 200 in 17ms (next.js: 1.3ms, application-code: 16ms)
+ GET / 200 in 17ms (next.js: 1.4ms, application-code: 15ms)
