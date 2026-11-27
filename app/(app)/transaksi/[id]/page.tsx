@@ -16,9 +16,9 @@ export default async function EditTransactionPage({ params }: PageProps<"/transa
   const t = data.txns.find((x) => x.id === id);
   if (!t) notFound();
   return (
-    <div className="space-y-6">
-      <h1 className="text-xl font-semibold">Ubah transaksi</h1>
-      {t.source === "trading" && <p className="text-sm text-slate-600">Dicatat oleh aplikasi trading.</p>}
+    <div className="mx-auto max-w-lg space-y-6 py-5">
+      <h1 className="font-narrow text-3xl font-bold">Ubah transaksi</h1>
+      {t.source === "trading" && <p className="text-sm text-ink-2">Dicatat oleh aplikasi trading.</p>}
       <TransactionForm
         accounts={data.accounts.filter((a) => !a.archived)}
         categories={{ expense: listCategoriesByUsage(db, "expense"), income: listCategoriesByUsage(db, "income") }}

@@ -1,6 +1,49 @@
 @import "tailwindcss";
 
+/* Tanggal Tua: an Indonesian wall calendar. Paper and ink; red only for kebablasan, marker blue only for today. */
+@theme {
+  --color-paper: #fbfaf6;
+  --color-sheet: #ffffff;
+  --color-ink: #151515;
+  --color-ink-2: #4a4740;
+  --color-ink-3: #77726a;
+  --color-rule: #e4dfd3;
+  --color-merah: #d7261e;
+  --color-merah-tint: #fbe9e7;
+  --color-aman: #1f7a4d;
+  --color-mepet: #9a5b00;
+  --color-marker: #1f5fd1;
+  --font-narrow: var(--font-archivo-narrow), "Arial Narrow", sans-serif;
+}
+
+html {
+  background: var(--color-paper);
+  color: var(--color-ink);
+  caret-color: var(--color-marker);
+  accent-color: var(--color-ink);
+  scrollbar-color: var(--color-ink-3) var(--color-paper);
+}
+
 body {
   font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   font-variant-numeric: tabular-nums;
+}
+
+::selection {
+  background: var(--color-marker);
+  color: #fff;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-marker);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+a {
+  text-underline-offset: 3px;
+}
+
+summary::-webkit-details-marker {
+  display: none;
 }

@@ -7,28 +7,39 @@ import { lastUsedAccountId } from "@/lib/data/transactions";
 import { todayJakarta } from "@/lib/dates";
 import { getDb } from "@/lib/db";
 
-export default async function NewTransactionPage() {
+const one = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v);
+
+export default async function NewTransactionPage({ searchParams }: PageProps<"/transaksi/baru">) {
   await requireSession();
   const db = getDb();
   const accounts = loadFinanceData(db).accounts.filter((a) => !a.archived);
   if (!accounts.length) {
     return (
-      <p className="text-slate-600">
+      <p className="py-8 text-ink-2">
         Tambahkan akun dulu di{" "}
-        <Link href="/akun" className="text-teal-700 underline">
+        <Link href="/akun" className="font-semibold text-ink underline">
           halaman Akun
         </Link>
         .
       </p>
     );
   }
+  // ?tipe=transfer&ke=<id>&dari=<id> comes from Beranda's "Catat setor"; unknown ids are ignored.
+  const sp = await searchParams;
+  const known = (v: string | undefined) => accounts.find((a) => a.id === Number(v))?.id ?? null;
+  const isTransfer = one(sp.tipe) === "transfer";
   return (
-    <div className="space-y-4">
-      <h1 className="text-xl font-semibold">Catat transaksi</h1>
+    <div className="mx-auto max-w-lg space-y-5 py-5">
+      <h1 className="font-narrow text-3xl font-bold">{isTransfer ? "Catat setor / transfer" : "Catat transaksi"}</h1>
       <TransactionForm
         accounts={accounts}
         categories={{ expense: listCategoriesByUsage(db, "expense"), income: listCategoriesByUsage(db, "income") }}
-        defaults={{ accountId: lastUsedAccountId(db), occurredOn: todayJakarta() }}
+        defaults={{
+          accountId: (isTransfer && known(one(sp.dari))) || lastUsedAccountId(db),
+          occurredOn: todayJakarta(),
+          type: isTransfer ? "transfer" : undefined,
+          toAccountId: isTransfer ? known(one(sp.ke)) : null,
+        }}
       />
     </div>
   );

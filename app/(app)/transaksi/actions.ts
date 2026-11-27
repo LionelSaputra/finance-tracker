@@ -24,11 +24,14 @@ export async function saveTransaction(_prev: ActionState, fd: FormData): Promise
       note: formText(fd, "note") || null,
     };
     const id = formId(fd, "id");
-    if (id) updateTransaction(getDb(), id, input);
-    else createTransaction(getDb(), input);
     revalidatePath("/", "layout");
-    redirect("/transaksi");
-  });
+    if (id) {
+      updateTransaction(getDb(), id, input);
+      redirect("/transaksi");
+    }
+    // New entries stay on the form, so an evening recap is one entry after another.
+    createTransaction(getDb(), input);
+  }, "Tersimpan. Lanjut catat berikutnya.");
 }
 
 export async function removeTransaction(id: number, _prev: ActionState, _fd: FormData): Promise<ActionState> {

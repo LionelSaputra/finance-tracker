@@ -36,6 +36,20 @@ export type SafeToTrade = {
   reason: string | null;
 };
 
+export type PaceStatus = "aman" | "mepet" | "lewat";
+export type PaceDay = { date: string; spent: number; ahead: boolean };
+/** How the viewed month's spending compares with its allowance; null fields when there is nothing to judge against. */
+export type MonthPace = {
+  allowance: number | null;
+  allowanceSource: "budget" | "average" | null;
+  spent: number;
+  remaining: number | null;
+  daysLeft: number;
+  perDay: number | null;
+  status: PaceStatus | null;
+  days: PaceDay[];
+};
+
 export type FinanceSnapshot = {
   month: string;
   income: number;
@@ -47,6 +61,7 @@ export type FinanceSnapshot = {
   goals: GoalLine[];
   safeToTrade: SafeToTrade;
   tradingResult: number;
+  pace: MonthPace;
 };
 
 type Range = { start: string; end: string };
@@ -181,8 +196,47 @@ export function computeSnapshot(data: FinanceData, month: string, today: string)
       };
     });
 
+  // Allowance = the larger of total budgets and a usual month, the same caution the safe-to-trade reserve uses.
+  const usual = Math.max(budgetTotal, avgMonthlyExpense ?? 0);
+  const pace = monthPace(month, today, usual > 0 ? usual : null, budgetTotal >= (avgMonthlyExpense ?? 0) ? "budget" : "average", flows);
+
   return {
-    month, income, expense, categories: lines, split, avgMonthlyExpense, emergency, goals, safeToTrade,
+    month, income, expense, categories: lines, split, avgMonthlyExpense, emergency, goals, safeToTrade, pace,
     tradingResult: totalOf("income", cur, tradingFlows) - totalOf("expense", cur, tradingFlows),
+  };
+}
+
+/** Mepet = spending runs more than 10 points of the allowance ahead of the share of the month gone by. */
+const PACE_MARGIN = 0.1;
+
+function monthPace(month: string, today: string, allowance: number | null, source: "budget" | "average", flows: Transaction[]): MonthPace {
+  const { start, end } = monthRange(month);
+  const length = Number(end.slice(8));
+  const isPast = end < today;
+  const isFuture = start > today;
+  const lastDay = isPast ? length : isFuture ? 0 : Number(today.slice(8));
+  const perDate = new Map<string, number>();
+  for (const t of flows) if (t.type === "expense" && t.occurredOn >= start && t.occurredOn <= end) perDate.set(t.occurredOn, (perDate.get(t.occurredOn) ?? 0) + t.amount);
+
+  let cumulative = 0;
+  const days: PaceDay[] = [];
+  for (let d = 1; d <= length; d++) {
+    const date = `${month}-${String(d).padStart(2, "0")}`;
+    const spent = perDate.get(date) ?? 0;
+    cumulative += spent;
+    const ahead = allowance != null && d <= lastDay && spent > 0 && cumulative > allowance * (d / length + PACE_MARGIN);
+    days.push({ date, spent, ahead });
+  }
+  const spent = sum([...perDate.values()]);
+  const daysLeft = isPast || isFuture ? 0 : length - lastDay + 1;
+  if (allowance == null || isFuture) {
+    return { allowance, allowanceSource: allowance == null ? null : source, spent, remaining: null, daysLeft, perDay: null, status: null, days };
+  }
+  const remaining = allowance - spent;
+  const elapsed = lastDay / length;
+  const status: PaceStatus = remaining < 0 ? "lewat" : spent > allowance * (elapsed + PACE_MARGIN) ? "mepet" : "aman";
+  return {
+    allowance, allowanceSource: source, spent, remaining, daysLeft, status, days,
+    perDay: daysLeft > 0 ? Math.floor(Math.max(0, remaining) / daysLeft) : null,
   };
 }

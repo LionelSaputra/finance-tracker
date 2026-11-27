@@ -1,5 +1,6 @@
 import { logout } from "@/app/(auth)/login/actions";
-import { ActionForm, inputClass } from "@/components/ActionForm";
+import { ActionForm } from "@/components/ActionForm";
+import { inputClass, outlineButton } from "@/components/styles";
 import { requireSession } from "@/lib/auth/session";
 import { loadFinanceData } from "@/lib/data/load";
 import { getDb } from "@/lib/db";
@@ -32,21 +33,21 @@ export default async function PengaturanPage() {
   const ai = aiSettingsView(getDb());
 
   return (
-    <div className="space-y-6">
-      <h1 className="text-xl font-semibold">Pengaturan</h1>
+    <div className="mx-auto max-w-2xl space-y-8 py-5">
+      <h1 className="font-narrow text-3xl font-bold">Pengaturan</h1>
 
-      <section className="rounded-xl bg-white p-3 shadow-sm">
-        <h2 className="mb-2 font-medium">Dana darurat</h2>
+      <section className="">
+        <h2 className="mb-3 border-b-2 border-ink pb-1 font-narrow text-xl font-bold">Dana darurat</h2>
         <ActionForm action={settingsAction} submitLabel="Simpan" className="flex flex-wrap items-center gap-2">
-          <label htmlFor="emergencyMonths" className="text-sm text-slate-600">
+          <label htmlFor="emergencyMonths" className="text-sm text-ink-2">
             Target (bulan pengeluaran)
           </label>
           <input id="emergencyMonths" name="emergencyMonths" type="number" min={1} max={24} defaultValue={data.settings.emergencyMonths} className={`${inputClass} w-24`} />
         </ActionForm>
       </section>
 
-      <section className="space-y-3 rounded-xl bg-white p-3 shadow-sm">
-        <h2 className="font-medium">Saran AI (Claude)</h2>
+      <section className="space-y-3 ">
+        <h2 className="mb-3 border-b-2 border-ink pb-1 font-narrow text-xl font-bold">Saran AI (Claude)</h2>
         <p className="text-sm">
           API key:{" "}
           <strong>
@@ -69,7 +70,7 @@ export default async function PengaturanPage() {
               </option>
             ))}
           </select>
-          <p className="text-xs text-slate-500">
+          <p className="text-xs text-ink-3">
             Buat key di console.anthropic.com (butuh saldo prabayar). Key disimpan di database aplikasi ini dan tidak pernah ditampilkan lagi.
           </p>
         </ActionForm>
@@ -81,17 +82,17 @@ export default async function PengaturanPage() {
       </section>
 
       {(["income", "expense"] as const).map((kind) => (
-        <section key={kind} className="space-y-2">
-          <h2 className="font-medium">Kategori {kind === "income" ? "pemasukan" : "pengeluaran"}</h2>
+        <section key={kind}>
+          <h2 className="mb-3 border-b-2 border-ink pb-1 font-narrow text-xl font-bold">Kategori {kind === "income" ? "pemasukan" : "pengeluaran"}</h2>
           {active
             .filter((c) => c.kind === kind)
             .map((c) => (
-              <details key={c.id} className="rounded-xl bg-white p-3 shadow-sm">
+              <details key={c.id} className="group border-b border-rule py-3">
                 <summary className="flex cursor-pointer list-none justify-between">
                   <span>{c.name}</span>
-                  <span className="text-xs text-slate-500">{kind === "expense" ? (c.group ? GROUP_LABEL[c.group] : "Lainnya") : ""}</span>
+                  <span className="text-xs text-ink-3">{kind === "expense" ? (c.group ? GROUP_LABEL[c.group] : "Lainnya") : ""}</span>
                 </summary>
-                <div className="mt-3 space-y-3 border-t border-slate-100 pt-3">
+                <div className="mt-3 space-y-4">
                   <ActionForm action={updateCategoryAction.bind(null, c.id)} submitLabel="Simpan">
                     <input name="name" defaultValue={c.name} required maxLength={50} className={inputClass} aria-label="Nama kategori" />
                     {kind === "expense" && <GroupSelect value={c.group} />}
@@ -103,8 +104,8 @@ export default async function PengaturanPage() {
         </section>
       ))}
 
-      <section className="rounded-xl bg-white p-3 shadow-sm">
-        <h2 className="mb-2 font-medium">Tambah kategori</h2>
+      <section className="">
+        <h2 className="mb-3 border-b-2 border-ink pb-1 font-narrow text-xl font-bold">Tambah kategori</h2>
         <ActionForm action={createCategoryAction} submitLabel="Tambah">
           <input name="name" placeholder="Nama kategori" required maxLength={50} className={inputClass} aria-label="Nama kategori" />
           <select name="kind" defaultValue="expense" className={inputClass} aria-label="Jenis kategori">
@@ -112,22 +113,22 @@ export default async function PengaturanPage() {
             <option value="income">Pemasukan</option>
           </select>
           <GroupSelect value="needs" />
-          <p className="text-xs text-slate-500">Kelompok hanya dipakai untuk pengeluaran.</p>
+          <p className="text-xs text-ink-3">Kelompok hanya dipakai untuk pengeluaran.</p>
         </ActionForm>
       </section>
 
-      <section className="space-y-2 rounded-xl bg-white p-3 shadow-sm">
-        <h2 className="font-medium">Data & koneksi</h2>
+      <section className="space-y-2 ">
+        <h2 className="mb-3 border-b-2 border-ink pb-1 font-narrow text-xl font-bold">Data & koneksi</h2>
         <p className="text-sm">
           Token API trading: <strong>{tokenSet ? "terpasang" : "belum"}</strong>
         </p>
-        <a href="/export" className="inline-block rounded-lg border border-slate-300 px-3 py-2 text-sm">
+        <a href="/export" className={outlineButton}>
           Export transaksi (CSV)
         </a>
       </section>
 
       <form action={logout}>
-        <button className="w-full rounded-lg border border-slate-300 px-3 py-2">Keluar</button>
+        <button className={`${outlineButton} w-full`}>Keluar</button>
       </form>
     </div>
   );

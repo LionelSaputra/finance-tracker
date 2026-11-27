@@ -1,7 +1,9 @@
+import { eq } from "drizzle-orm";
 import { beforeEach, describe, expect, it } from "vitest";
 import { todayJakarta } from "../dates";
 import { createDb, type Db } from "../db";
 import { migrateDb } from "../db/migrate";
+import { transactions } from "../db/schema";
 import { seedDefaults } from "../db/seed";
 import { accountBalances } from "../finance";
 import { MAX_AMOUNT } from "../money";
@@ -9,7 +11,7 @@ import { categoryInputSchema, txnInputSchema } from "../validation";
 import { adjustBalance, archiveAccount, createAccount } from "./accounts";
 import { createCategory, listCategoriesByUsage } from "./categories";
 import { loadFinanceData, updateSettings } from "./load";
-import { createTransaction, deleteTransaction, lastUsedAccountId, listTransactions, updateTransaction } from "./transactions";
+import { createTransaction, deleteTransaction, lastUsedAccountId, listTransactions, recapStatus, updateTransaction } from "./transactions";
 
 let db: Db;
 let dompet: number;
@@ -105,6 +107,18 @@ describe("transactions", () => {
     createTransaction(db, { ...expense(), accountId: lama });
     archiveAccount(db, lama);
     expect(lastUsedAccountId(db)).toBe(bank);
+  });
+
+  it("reports the last manual entry and today's count in WIB, ignoring the trading app", () => {
+    expect(recapStatus(db, "2026-11-27")).toBeNull();
+    const a = createTransaction(db, { ...expense(), accountId: bank }).id;
+    const b = createTransaction(db, { ...expense(), accountId: bank }).id;
+    const broker = createAccount(db, { name: "Broker", kind: "trading", openingBalance: 0 });
+    createTransaction(db, { occurredOn: "2026-11-27", type: "income", amount: 5_000, accountId: broker, categoryId: catId("Profit Trading"), externalId: "p2" }, "trading");
+    // 26 Nov 18:30 UTC is already 27 Nov 01:30 WIB; 26 Nov 16:00 UTC is still 26 Nov in Jakarta.
+    db.update(transactions).set({ createdAt: "2026-11-26 16:00:00" }).where(eq(transactions.id, a)).run();
+    db.update(transactions).set({ createdAt: "2026-11-26 18:30:00" }).where(eq(transactions.id, b)).run();
+    expect(recapStatus(db, "2026-11-27")).toEqual({ lastAt: "2026-11-26 18:30:00", todayCount: 1 });
   });
 });
 

@@ -180,3 +180,35 @@ describe("computeSnapshot", () => {
     expect(snap.goals[0]).toMatchObject({ name: "Laptop", target: 12_000_000, balance: 3_000_000, progressPct: 25, neededPerMonth: 1_500_000 });
   });
 });
+
+describe("month pace", () => {
+  const wallet = acc({ name: "Dompet", kind: "spending", openingBalance: 50_000_000 });
+  const makan = cat({ name: "Makan", kind: "expense", group: "needs", monthlyBudget: 3_000_000 });
+  const spend = (occurredOn: string, amount: number) => tx({ occurredOn, type: "expense", amount, accountId: wallet.id, categoryId: makan.id });
+  const pace = (txns: Transaction[], month: string, today: string) => computeSnapshot(data([wallet], [makan], txns), month, today).pace;
+
+  it("is aman while spending trails the month, with the rest split over the days left including today", () => {
+    const p = pace([spend("2026-11-03", 1_000_000), spend("2026-11-20", 500_000)], "2026-11", "2026-11-27");
+    expect(p).toMatchObject({ allowance: 3_000_000, allowanceSource: "budget", spent: 1_500_000, remaining: 1_500_000, daysLeft: 4, perDay: 375_000, status: "aman" });
+    expect(p.days).toHaveLength(30);
+    expect(p.days.find((d) => d.date === "2026-11-03")).toEqual({ date: "2026-11-03", spent: 1_000_000, ahead: true });
+    expect(p.days.find((d) => d.date === "2026-11-20")?.ahead).toBe(false);
+  });
+
+  it("is mepet when spending runs more than 10 points ahead of the days gone by", () => {
+    // Day 15 of 30 = 50% of the month; 1.800.000 of 3.000.000 = 60% spent: not yet over the margin.
+    expect(pace([spend("2026-11-10", 1_800_000)], "2026-11", "2026-11-15").status).toBe("aman");
+    expect(pace([spend("2026-11-10", 1_810_000)], "2026-11", "2026-11-15").status).toBe("mepet");
+  });
+
+  it("is lewat once the allowance is used up, and judges a past month as a whole", () => {
+    expect(pace([spend("2026-11-10", 3_100_000)], "2026-11", "2026-11-15")).toMatchObject({ status: "lewat", remaining: -100_000, perDay: 0 });
+    expect(pace([spend("2026-10-02", 2_900_000)], "2026-10", "2026-11-15")).toMatchObject({ status: "aman", daysLeft: 0, perDay: null });
+  });
+
+  it("has nothing to judge for a future month or without budget and history", () => {
+    expect(pace([], "2026-12", "2026-11-15")).toMatchObject({ status: null, remaining: null });
+    const noBudget = computeSnapshot(data([wallet], [{ ...makan, monthlyBudget: null }], []), "2026-11", "2026-11-15").pace;
+    expect(noBudget).toMatchObject({ allowance: null, allowanceSource: null, status: null });
+  });
+});

@@ -109,3 +109,16 @@ export function lastUsedAccountId(db: Db): number | null {
       .get()?.id ?? null
   );
 }
+
+/** When the owner last recorded something by hand, and how many entries they made today (WIB). createdAt is stored in UTC. */
+export function recapStatus(db: Db, today: string): { lastAt: string; todayCount: number } | null {
+  const manual = eq(transactions.source, "manual");
+  const last = db.select({ at: transactions.createdAt }).from(transactions).where(manual).orderBy(desc(transactions.id)).limit(1).get();
+  if (!last) return null;
+  const { n } = db
+    .select({ n: sql<number>`count(*)` })
+    .from(transactions)
+    .where(and(manual, sql`date(${transactions.createdAt}, '+7 hours') = ${today}`))
+    .get()!;
+  return { lastAt: last.at, todayCount: n };
+}

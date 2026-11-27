@@ -2,6 +2,7 @@
 
 import { startTransition, useActionState, useEffect, useRef, type FormEvent, type ReactNode } from "react";
 import type { ActionState } from "@/lib/action";
+import { dangerButton, outlineButton, primaryButton } from "./styles";
 
 type Action = (prev: ActionState, fd: FormData) => Promise<ActionState>;
 
@@ -23,14 +24,17 @@ export function useKeepValuesAction(action: Action, confirm?: string) {
 type Props = {
   action: Action;
   submitLabel: string;
+  pendingLabel?: string;
   children?: ReactNode;
   className?: string;
   danger?: boolean;
+  quiet?: boolean;
   confirm?: string;
 };
 
+
 /** A form bound to a server action that shows the action's success or error message under the button. */
-export function ActionForm({ action, submitLabel, children, className = "space-y-2", danger, confirm }: Props) {
+export function ActionForm({ action, submitLabel, pendingLabel = "Menyimpan…", children, className = "space-y-2", danger, quiet, confirm }: Props) {
   const [state, onSubmit, pending] = useKeepValuesAction(action, confirm);
   const ref = useRef<HTMLFormElement>(null);
   // After a success, inputs go back to their (refreshed) defaults, e.g. an "add" form empties.
@@ -41,20 +45,13 @@ export function ActionForm({ action, submitLabel, children, className = "space-y
   return (
     <form ref={ref} onSubmit={onSubmit} className={className}>
       {children}
-      <button
-        disabled={pending}
-        className={`rounded-lg px-3 py-2 text-sm font-medium disabled:opacity-60 ${danger ? "border border-red-300 text-red-700" : "bg-teal-700 text-white"}`}
-      >
-        {pending ? "Menyimpan…" : submitLabel}
+      <button disabled={pending} className={danger ? dangerButton : quiet ? outlineButton : primaryButton}>
+        {pending ? pendingLabel : submitLabel}
       </button>
-      {state?.error && (
-        <p role="alert" className="text-sm text-red-700">
-          {state.error}
-        </p>
-      )}
-      {state?.ok && <p className="text-sm text-teal-700">{state.ok}</p>}
+      <p aria-live="polite" className="empty:hidden text-sm">
+        {state?.error ? <span className="text-merah">{state.error}</span> : state?.ok ? <span className="text-aman">{state.ok}</span> : null}
+      </p>
     </form>
   );
 }
 
-export const inputClass = "w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-base";

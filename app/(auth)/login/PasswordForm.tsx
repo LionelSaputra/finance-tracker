@@ -2,6 +2,7 @@
 
 import { useActionState } from "react";
 import type { LoginState } from "./actions";
+import { inputClass as field, primaryButton } from "@/components/styles";
 
 type Props = {
   action: (prev: LoginState, fd: FormData) => Promise<LoginState>;
@@ -11,14 +12,13 @@ type Props = {
   confirm?: boolean;
 };
 
-const field = "w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-base";
 
 export function PasswordForm({ action, title, intro, submitLabel, confirm }: Props) {
   const [state, formAction, pending] = useActionState(action, undefined);
   return (
     <main className="mx-auto flex min-h-screen max-w-sm flex-col justify-center px-4">
-      <h1 className="mb-2 text-2xl font-semibold">{title}</h1>
-      {intro && <p className="mb-6 text-sm text-slate-600">{intro}</p>}
+      <h1 className="mb-2 border-b-2 border-ink pb-2 font-narrow text-5xl font-bold">{title}</h1>
+      {intro && <p className="mb-6 text-sm text-ink-2">{intro}</p>}
       <form action={formAction} className="space-y-3">
         <label className="block text-sm font-medium" htmlFor="password">
           Password
@@ -33,11 +33,11 @@ export function PasswordForm({ action, title, intro, submitLabel, confirm }: Pro
           </>
         )}
         {state?.error && (
-          <p role="alert" className="text-sm text-red-700">
+          <p role="alert" className="text-sm text-merah">
             {state.error}
           </p>
         )}
-        <button disabled={pending} className="w-full rounded-lg bg-teal-700 px-3 py-2 font-medium text-white disabled:opacity-60">
+        <button disabled={pending} className={`${primaryButton} h-12 w-full text-base`}>
           {pending ? "Memeriksa…" : submitLabel}
         </button>
       </form>

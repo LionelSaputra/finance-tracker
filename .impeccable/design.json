@@ -1,0 +1,133 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-11-28T00:00:00+07:00",
+  "title": "Design System: Finance",
+  "extensions": {
+    "colorMeta": {
+      "paper": { "role": "neutral", "displayName": "Calendar Paper", "canonical": "#fbfaf6", "tonalRamp": ["#2a2924", "#45433c", "#66635a", "#8a867c", "#aeaa9f", "#d0ccc1", "#ebe8df", "#fbfaf6"] },
+      "sheet": { "role": "neutral", "displayName": "Sheet White", "canonical": "#ffffff", "tonalRamp": ["#262626", "#404040", "#5e5e5e", "#808080", "#a3a3a3", "#c7c7c7", "#e6e6e6", "#ffffff"] },
+      "ink": { "role": "primary", "displayName": "Ink Black", "canonical": "#151515", "tonalRamp": ["#151515", "#2b2b2a", "#45443f", "#636058", "#858177", "#aaa69b", "#d3cfc5", "#f2f0ea"] },
+      "ink-2": { "role": "neutral", "displayName": "Ink Brown-Grey", "canonical": "#4a4740", "tonalRamp": ["#1e1d1a", "#33312c", "#4a4740", "#64605a", "#817d75", "#a29e96", "#c8c5be", "#eceae5"] },
+      "ink-3": { "role": "neutral", "displayName": "Faded Ink", "canonical": "#77726a", "tonalRamp": ["#26241f", "#3d3a34", "#57534b", "#77726a", "#948f87", "#b1ada5", "#d1cec7", "#efede9"] },
+      "rule": { "role": "neutral", "displayName": "Calendar Rule", "canonical": "#e4dfd3", "tonalRamp": ["#2b2925", "#47443d", "#68645a", "#8c877b", "#b0aa9d", "#cfc9bc", "#e4dfd3", "#f6f4ef"] },
+      "merah": { "role": "secondary", "displayName": "Kalender Red", "canonical": "#c4201a", "tonalRamp": ["#3d0705", "#650d0a", "#931610", "#c4201a", "#e0473f", "#ef8078", "#f8bdb8", "#fbe9e7"] },
+      "merah-tint": { "role": "secondary", "displayName": "Red Tint", "canonical": "#fbe9e7", "tonalRamp": ["#3d0705", "#650d0a", "#931610", "#c4201a", "#e0473f", "#ef8078", "#f8bdb8", "#fbe9e7"] },
+      "aman": { "role": "secondary", "displayName": "Aman Green", "canonical": "#1f7a4d", "tonalRamp": ["#082419", "#0f3d29", "#165a3b", "#1f7a4d", "#3c9a6b", "#6fbb93", "#a9d9bf", "#e6f2ec"] },
+      "mepet": { "role": "secondary", "displayName": "Mepet Amber", "canonical": "#9a5b00", "tonalRamp": ["#2b1900", "#4a2c00", "#6f4300", "#9a5b00", "#c27a12", "#dea14a", "#f0cc8e", "#fdf1dc"] },
+      "marker": { "role": "tertiary", "displayName": "Marker Blue", "canonical": "#1f5fd1", "tonalRamp": ["#08193b", "#0f2c66", "#164396", "#1f5fd1", "#4a80e3", "#7fa6ee", "#b8cdf6", "#e8effc"] }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Display", "purpose": "Today's date on the leaf. One per screen." },
+      "headline": { "displayName": "Headline", "purpose": "Month verdict word: Aman, Mepet, Lewat. Empty-state and auth titles at 34 to 48px." },
+      "amount": { "displayName": "Amount", "purpose": "Dana aman figure on the leaf; amount field at 30px." },
+      "title": { "displayName": "Title", "purpose": "Section headings; month switcher uppercase with wide tracking." },
+      "figure": { "displayName": "Figure", "purpose": "Right-aligned rupiah in ledger rows (16px in compact lists)." },
+      "calendar-day": { "displayName": "Calendar Day", "purpose": "Day numbers in the month grid." },
+      "body": { "displayName": "Body", "purpose": "Sentences, row names, suggestions; 15px verdict sentence, 16px inputs." },
+      "label": { "displayName": "Label", "purpose": "Meta lines, weekday headers, footnotes; 10 to 11px only for nav labels and per-day allowance." }
+    },
+    "shadows": [],
+    "motion": [
+      { "name": "press-scale", "value": "transform 150ms cubic-bezier(0.4, 0, 0.2, 1); scale(0.95) while active", "purpose": "The round add button in the bottom nav while pressed. The only motion in the system." }
+    ],
+    "breakpoints": [
+      { "name": "lg", "value": "1024px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Ink-filled stamp for the main action of a form or empty state.",
+      "html": "<button class=\"ds-btn-primary\">Simpan</button>",
+      "css": ".ds-btn-primary { display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 44px; padding: 0 16px; border: none; border-radius: 6px; background: var(--color-ink, #151515); color: var(--color-paper, #fbfaf6); font: 600 14px system-ui, sans-serif; cursor: pointer; } .ds-btn-primary:hover { background: var(--color-ink-2, #4a4740); } .ds-btn-primary:focus-visible { outline: 2px solid var(--color-marker, #1f5fd1); outline-offset: 2px; } .ds-btn-primary:disabled { opacity: 0.6; }"
+    },
+    {
+      "name": "Outline Button",
+      "kind": "button",
+      "refersTo": "button-outline",
+      "description": "Secondary action such as Catat setor or Minta saran AI.",
+      "html": "<button class=\"ds-btn-outline\">Catat setor <svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M5 12h14M13 6l6 6-6 6\"/></svg></button>",
+      "css": ".ds-btn-outline { display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 44px; padding: 0 16px; border: 1.5px solid var(--color-ink, #151515); border-radius: 6px; background: transparent; color: var(--color-ink, #151515); font: 600 14px system-ui, sans-serif; cursor: pointer; } .ds-btn-outline:hover { background: color-mix(in srgb, var(--color-rule, #e4dfd3) 50%, transparent); } .ds-btn-outline:focus-visible { outline: 2px solid var(--color-marker, #1f5fd1); outline-offset: 2px; }"
+    },
+    {
+      "name": "Danger Button",
+      "kind": "button",
+      "refersTo": "button-danger",
+      "description": "Destructive action, red outline with red-tint hover.",
+      "html": "<button class=\"ds-btn-danger\">Hapus</button>",
+      "css": ".ds-btn-danger { display: inline-flex; align-items: center; justify-content: center; height: 44px; padding: 0 16px; border: 1.5px solid var(--color-merah, #c4201a); border-radius: 6px; background: transparent; color: var(--color-merah, #c4201a); font: 600 14px system-ui, sans-serif; cursor: pointer; } .ds-btn-danger:hover { background: var(--color-merah-tint, #fbe9e7); } .ds-btn-danger:focus-visible { outline: 2px solid var(--color-marker, #1f5fd1); outline-offset: 2px; }"
+    },
+    {
+      "name": "Text Field",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "A sheet-white slip on the paper; darkens to ink with a marker outline on focus.",
+      "html": "<label class=\"ds-field\">Tanggal<input class=\"ds-input\" placeholder=\"Catatan (opsional)\"></label>",
+      "css": ".ds-field { display: block; font: 14px system-ui, sans-serif; color: var(--color-ink-2, #4a4740); } .ds-input { display: block; width: 100%; margin-top: 4px; padding: 10px 12px; border: 1px solid color-mix(in srgb, var(--color-ink, #151515) 25%, transparent); border-radius: 6px; background: var(--color-sheet, #fff); color: var(--color-ink, #151515); font: 16px system-ui, sans-serif; } .ds-input::placeholder { color: var(--color-ink-3, #77726a); } .ds-input:focus { border-color: var(--color-ink, #151515); outline: none; } .ds-input:focus-visible { outline: 2px solid var(--color-marker, #1f5fd1); outline-offset: 2px; }"
+    },
+    {
+      "name": "Category Chip",
+      "kind": "chip",
+      "refersTo": "chip",
+      "description": "Category radio pill; selected fills with ink.",
+      "html": "<span class=\"ds-chip-row\"><button class=\"ds-chip\" aria-pressed=\"true\">Makan</button><button class=\"ds-chip\" aria-pressed=\"false\">Transport</button></span>",
+      "css": ".ds-chip-row { display: flex; flex-wrap: wrap; gap: 8px; } .ds-chip { padding: 8px 14px; border: 1px solid color-mix(in srgb, var(--color-ink, #151515) 30%, transparent); border-radius: 9999px; background: var(--color-sheet, #fff); color: var(--color-ink, #151515); font: 14px system-ui, sans-serif; cursor: pointer; } .ds-chip[aria-pressed=\"true\"] { border-color: var(--color-ink, #151515); background: var(--color-ink, #151515); color: var(--color-paper, #fbfaf6); } .ds-chip:focus-visible { outline: 2px solid var(--color-marker, #1f5fd1); outline-offset: 2px; }"
+    },
+    {
+      "name": "Bottom Nav",
+      "kind": "nav",
+      "refersTo": "nav-add",
+      "description": "Fixed five-slot nav framed by a 2px ink rule, with a round ink add button in the center.",
+      "html": "<nav class=\"ds-nav\"><a class=\"ds-nav-item\" aria-current=\"page\"><svg width=\"22\" height=\"22\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M4 11l8-7 8 7v9h-5v-6h-6v6H4z\"/></svg>Beranda</a><a class=\"ds-nav-item\"><svg width=\"22\" height=\"22\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M5 7h14M5 12h14M5 17h9\"/></svg>Transaksi</a><a class=\"ds-nav-add\" aria-label=\"Catat transaksi\"><svg width=\"26\" height=\"26\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\"><path d=\"M12 5v14M5 12h14\"/></svg></a><a class=\"ds-nav-item\"><svg width=\"22\" height=\"22\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linejoin=\"round\"><path d=\"M12 3a9 9 0 1 0 9 9h-9z\"/></svg>Budget</a><a class=\"ds-nav-item\"><svg width=\"22\" height=\"22\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\"><path d=\"M3 7.5A1.5 1.5 0 0 1 4.5 6h15A1.5 1.5 0 0 1 21 7.5v10a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 17.5zM16 12.5h2\"/></svg>Akun</a></nav>",
+      "css": ".ds-nav { display: grid; grid-template-columns: repeat(5, 1fr); align-items: center; height: 68px; border-top: 2px solid var(--color-ink, #151515); background: var(--color-paper, #fbfaf6); } .ds-nav-item { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 6px 0; font: 11px system-ui, sans-serif; color: var(--color-ink-3, #77726a); text-decoration: none; cursor: pointer; } .ds-nav-item[aria-current=\"page\"] { color: var(--color-ink, #151515); font-weight: 600; } .ds-nav-item:focus-visible, .ds-nav-add:focus-visible { outline: 2px solid var(--color-marker, #1f5fd1); outline-offset: 2px; } .ds-nav-add { justify-self: center; display: grid; place-items: center; width: 52px; height: 52px; border-radius: 9999px; background: var(--color-ink, #151515); color: var(--color-paper, #fbfaf6); transition: transform 150ms cubic-bezier(0.4, 0, 0.2, 1); cursor: pointer; } .ds-nav-add:active { transform: scale(0.95); }"
+    },
+    {
+      "name": "Pace Calendar",
+      "kind": "custom",
+      "description": "Monday-first month grid: ink spend dots, red ahead-of-pace days, marker-ringed today, faded future days with per-day allowance.",
+      "html": "<ol class=\"ds-cal\"><li class=\"ds-cal-wd\">Sen</li><li class=\"ds-cal-wd\">Sel</li><li class=\"ds-cal-wd\">Rab</li><li class=\"ds-cal-wd\">Kam</li><li class=\"ds-cal-wd\">Jum</li><li class=\"ds-cal-wd\">Sab</li><li class=\"ds-cal-wd\">Min</li><li><a class=\"ds-cal-day\"><span>24</span><i class=\"ds-dot\" style=\"width:9px;height:9px\"></i></a></li><li><a class=\"ds-cal-day ds-ahead\"><span>25</span><i class=\"ds-dot\" style=\"width:16px;height:16px\"></i></a></li><li><a class=\"ds-cal-day\"><span>26</span></a></li><li><a class=\"ds-cal-day\"><span>27</span><i class=\"ds-dot\" style=\"width:7px;height:7px\"></i></a></li><li><a class=\"ds-cal-day\"><span class=\"ds-today\">28</span></a></li><li><a class=\"ds-cal-day ds-future\"><span>29</span><small>85rb</small></a></li><li><a class=\"ds-cal-day ds-future\"><span>30</span><small>85rb</small></a></li></ol>",
+      "css": ".ds-cal { display: grid; grid-template-columns: repeat(7, 1fr); list-style: none; margin: 0; padding: 0; background: var(--color-paper, #fbfaf6); } .ds-cal-wd { padding-bottom: 4px; text-align: center; font: 12px system-ui, sans-serif; color: var(--color-ink-3, #77726a); } .ds-cal li:not(.ds-cal-wd) { border-top: 1px solid var(--color-rule, #e4dfd3); } .ds-cal-day { position: relative; display: flex; flex-direction: column; height: 48px; padding: 4px 4px 0; font: 500 15px 'Archivo Narrow', 'Arial Narrow', sans-serif; color: var(--color-ink, #151515); text-decoration: none; cursor: pointer; } .ds-cal-day:hover { background: color-mix(in srgb, var(--color-rule, #e4dfd3) 40%, transparent); } .ds-cal-day > span { display: grid; place-items: center; width: 28px; height: 28px; } .ds-today { margin: -2px 0 0 -4px; border: 2px solid var(--color-marker, #1f5fd1); border-radius: 9999px; color: var(--color-marker, #1f5fd1); } .ds-dot { position: absolute; bottom: 6px; left: 50%; transform: translateX(-50%); border-radius: 9999px; background: var(--color-ink, #151515); } .ds-ahead { color: var(--color-merah, #c4201a); } .ds-ahead .ds-dot { background: var(--color-merah, #c4201a); } .ds-future { color: var(--color-ink-3, #77726a); } .ds-future small { position: absolute; bottom: 4px; left: 4px; font: 10px system-ui, sans-serif; } .ds-cal-day:focus-visible { outline: 2px solid var(--color-marker, #1f5fd1); outline-offset: 2px; }"
+    },
+    {
+      "name": "Budget Line",
+      "kind": "custom",
+      "description": "Ruled ledger row: name, sisa/lebih figure, 6px pace bar with a marker tick at today's share of the month.",
+      "html": "<a class=\"ds-bline\"><span class=\"ds-bline-top\"><span class=\"ds-bline-name\">Makan</span><span class=\"ds-bline-fig\">sisa Rp640.000</span></span><span class=\"ds-bar\"><span class=\"ds-bar-fill\" style=\"width:72%\"></span><span class=\"ds-bar-tick\" style=\"left:90%\"></span></span><span class=\"ds-bline-meta\">Rp1.660.000 dari Rp2.300.000</span></a>",
+      "css": ".ds-bline { display: block; padding: 12px 0; border-top: 1px solid var(--color-rule, #e4dfd3); border-bottom: 1px solid var(--color-rule, #e4dfd3); color: var(--color-ink, #151515); text-decoration: none; cursor: pointer; } .ds-bline:hover { background: color-mix(in srgb, var(--color-rule, #e4dfd3) 30%, transparent); } .ds-bline:focus-visible { outline: 2px solid var(--color-marker, #1f5fd1); outline-offset: 2px; } .ds-bline-top { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; } .ds-bline-name { font: 500 14px system-ui, sans-serif; } .ds-bline-fig { font: 700 18px 'Archivo Narrow', 'Arial Narrow', sans-serif; } .ds-bar { position: relative; display: block; height: 6px; margin-top: 8px; background: var(--color-rule, #e4dfd3); } .ds-bar-fill { display: block; height: 100%; background: var(--color-ink, #151515); } .ds-bar-tick { position: absolute; top: -4px; width: 2px; height: 14px; background: var(--color-marker, #1f5fd1); } .ds-bline-meta { display: block; margin-top: 4px; font: 12px system-ui, sans-serif; color: var(--color-ink-3, #77726a); }"
+    }
+  ],
+  "narrative": {
+    "northStar": "Tanggal Tua",
+    "overview": "The month is an Indonesian wall calendar hanging in the kitchen: warm paper, black ink, a ring of marker around today, and red print on the days that ran ahead of pace. Every screen is a page of that calendar or a ledger tucked behind it. There are no cards, no shadows, and no balance hero; structure comes from ink rules and narrow, calendar-scale numerals.\n\nDensity is ledger-like. Rows are separated by hairline rules, figures sit right-aligned in a narrow face, and explanations live behind a `details` disclosure rather than in extra panels. Color is a verdict, never decoration: the page is ink on paper until something is Aman, Mepet, or Lewat.\n\nThe system is phone-first (a home-screen web app) and opens into two columns at 1024px for the weekly laptop recap. Dark mode is not part of the system yet.",
+    "keyCharacteristics": [
+      "Warm paper ground, black ink type, hairline warm-grey rules.",
+      "Archivo Narrow numerals at calendar scale over a system-ui body.",
+      "Status colors carry meaning only: red kebablasan, green aman, amber mepet.",
+      "Marker blue is reserved for today and focus.",
+      "Flat: depth is drawn with rules, never shadows."
+    ],
+    "rules": [
+      { "name": "The Verdict-Only Color Rule", "body": "Red, green, and amber appear only when they state a verdict about money. A heading, link, or button is never colored for emphasis.", "section": "colors" },
+      { "name": "The One Marker Rule", "body": "Marker blue means \"today\" or \"you are here\" (focus, caret, selection). Never use it for links, data, or accents.", "section": "colors" },
+      { "name": "The Narrow Numbers Rule", "body": "Any rupiah figure or date that the eye hunts for is set in Archivo Narrow bold. Prose numbers inside a sentence stay in the body face, bolded.", "section": "typography" },
+      { "name": "The Printed Page Rule", "body": "If something needs separating, draw a rule; if it needs weight, fill it with ink. Never lift it with a shadow or wrap it in a card.", "section": "elevation" }
+    ],
+    "dos": [
+      "Do set every hunted-for rupiah figure and date in Archivo Narrow bold, right-aligned in ledger rows.",
+      "Do separate content with 1px `rule` lines and frame the app shell with 2px ink rules.",
+      "Do keep red, green, and amber for Lewat, Aman, and Mepet verdicts only.",
+      "Do reserve marker blue for today's ring, the today tick, focus, caret, and selection.",
+      "Do put explanations behind a \"Rincian\" or \"Lihat semua\" disclosure instead of adding panels.",
+      "Do keep every control at least 44px and the page gutter at 16px."
+    ],
+    "donts": [
+      "Don't add cards, panels with backgrounds, or box-shadows; the page is printed, not stacked.",
+      "Don't build a balance hero or a fintech card stack; the leaf and the calendar lead.",
+      "Don't use marker blue for links or data, or verdict colors for emphasis.",
+      "Don't set display numerals in the system face.",
+      "Don't introduce a second icon style; use the single 1.8px stroke family."
+    ]
+  }
+}

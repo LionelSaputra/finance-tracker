@@ -1,22 +1,46 @@
 import type { Suggestion } from "@/lib/suggestions";
+import { Icon, type IconName } from "./Icon";
 
-const STYLE: Record<Suggestion["level"], string> = {
-  alert: "border-red-200 bg-red-50 text-red-800",
-  warn: "border-amber-200 bg-amber-50 text-amber-900",
-  info: "border-slate-200 bg-white text-slate-700",
+const STYLE: Record<Suggestion["level"], { icon: IconName; tone: string; sr: string }> = {
+  alert: { icon: "alert", tone: "text-merah", sr: "Lewat:" },
+  warn: { icon: "rise", tone: "text-mepet", sr: "Perhatian:" },
+  info: { icon: "info", tone: "text-ink-3", sr: "Info:" },
 };
-const ICON: Record<Suggestion["level"], string> = { alert: "⚠", warn: "↑", info: "•" };
 
-export function SuggestionList({ items }: { items: Suggestion[] }) {
-  if (!items.length) return <p className="text-sm text-slate-600">Belum ada saran. Keuanganmu bulan ini terlihat aman.</p>;
+function Item({ s }: { s: Suggestion }) {
+  const st = STYLE[s.level];
   return (
-    <ul className="space-y-2">
-      {items.map((s) => (
-        <li key={s.text} className={`flex gap-2 rounded-lg border px-3 py-2 text-sm ${STYLE[s.level]}`}>
-          <span aria-hidden>{ICON[s.level]}</span>
-          <span>{s.text}</span>
-        </li>
-      ))}
-    </ul>
+    <li className="flex gap-2.5 py-2.5 text-sm">
+      <Icon name={st.icon} size={18} className={`mt-0.5 shrink-0 ${st.tone}`} />
+      <span>
+        <span className="sr-only">{st.sr} </span>
+        {s.text}
+      </span>
+    </li>
+  );
+}
+
+/** At most three, most urgent first; the rest wait behind one tap. */
+export function SuggestionList({ items }: { items: Suggestion[] }) {
+  if (!items.length) return <p className="text-sm text-ink-2">Belum ada saran untuk bulan ini.</p>;
+  const [shown, rest] = [items.slice(0, 3), items.slice(3)];
+  return (
+    <div>
+      <ul className="divide-y divide-rule">
+        {shown.map((s) => (
+          <Item key={s.text} s={s} />
+        ))}
+      </ul>
+      {rest.length > 0 && (
+        <details>
+          <summary className="cursor-pointer list-none py-2 text-sm font-semibold text-ink-2 underline">Lihat semua ({items.length})</summary>
+          <ul className="divide-y divide-rule">
+            {rest.map((s) => (
+              <Item key={s.text} s={s} />
+            ))}
+          </ul>
+        </details>
+      )}
+    </div>
   );
 }
