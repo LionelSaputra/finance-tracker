@@ -19,6 +19,7 @@ const DEFAULT_CATEGORIES: NewCategory[] = [
 ];
 
 export function seedDefaults(db: Db): void {
-  db.insert(categories).values(DEFAULT_CATEGORIES).onConflictDoNothing().run();
+  // Only on a fresh database: renamed or archived defaults must not come back on every restart.
+  if (!db.select({ id: categories.id }).from(categories).limit(1).get()) db.insert(categories).values(DEFAULT_CATEGORIES).run();
   db.insert(settings).values({ id: 1 }).onConflictDoNothing().run();
 }
