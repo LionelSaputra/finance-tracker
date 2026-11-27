@@ -10,6 +10,8 @@ import { AI_MODELS, aiSettingsView } from "@/lib/ai";
 import { RecurringForm } from "@/components/RecurringForm";
 import { listRecurring } from "@/lib/data/recurring";
 import { formatIDR } from "@/lib/money";
+import { cookies } from "next/headers";
+import { ThemePicker } from "@/components/ThemePicker";
 import { aiSettingsAction, deleteRecurringAction, archiveCategoryAction, clearAiKeyAction, createCategoryAction, settingsAction, updateCategoryAction } from "./actions";
 
 const MODEL_LABEL: Record<(typeof AI_MODELS)[number], string> = {
@@ -35,10 +37,17 @@ export default async function PengaturanPage() {
   const tokenSet = (process.env.TRADING_API_TOKEN?.length ?? 0) >= 32;
   const ai = aiSettingsView(getDb());
   const rutin = listRecurring(getDb());
+  const theme = (await cookies()).get("theme")?.value ?? "auto";
 
   return (
     <div className="mx-auto max-w-2xl space-y-8 py-5">
       <h1 className="font-narrow text-3xl font-bold">Pengaturan</h1>
+
+      <section>
+        <h2 className="mb-3 border-b-2 border-ink pb-1 font-narrow text-xl font-bold">Tampilan</h2>
+        <ThemePicker initial={theme === "light" || theme === "dark" ? theme : "auto"} />
+        <p className="mt-2 text-xs text-ink-3">Pilihan ini hanya berlaku di perangkat ini.</p>
+      </section>
 
       <section className="">
         <h2 className="mb-3 border-b-2 border-ink pb-1 font-narrow text-xl font-bold">Dana darurat</h2>

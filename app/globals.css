@@ -16,9 +16,9 @@
   --font-narrow: var(--font-archivo-narrow), "Arial Narrow", sans-serif;
 }
 
-/* Night edition of the same calendar for the evening recap: warm dark paper, light ink, colours lifted for contrast. */
+/* Night edition: follows the device unless a theme was picked in Pengaturan (data-theme on <html>). */
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme="light"]) {
     --color-paper: #171612;
     --color-sheet: #201f1a;
     --color-ink: #efebe2;
@@ -31,6 +31,28 @@
     --color-mepet: #f2b84b;
     --color-marker: #7fa8ff;
   }
+}
+
+:root[data-theme="dark"] {
+    --color-paper: #171612;
+    --color-sheet: #201f1a;
+    --color-ink: #efebe2;
+    --color-ink-2: #c4beb2;
+    --color-ink-3: #948e83;
+    --color-rule: #36342d;
+    --color-merah: #ff6f61;
+    --color-merah-tint: #3a1d1a;
+    --color-aman: #5fcf93;
+    --color-mepet: #f2b84b;
+    --color-marker: #7fa8ff;
+  }
+
+:root[data-theme="light"] {
+  color-scheme: light;
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
 }
 
 html {
