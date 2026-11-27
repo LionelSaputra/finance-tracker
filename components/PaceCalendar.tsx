@@ -1,6 +1,5 @@
 import Link from "next/link";
 import type { MonthPace } from "@/lib/finance";
-import { shortIDR } from "@/lib/labels";
 import { formatIDR } from "@/lib/money";
 
 const WEEKDAYS = ["Sen", "Sel", "Rab", "Kam", "Jum", "Sab", "Min"];
@@ -10,7 +9,7 @@ export function PaceCalendar({ pace, today }: { pace: MonthPace; today: string }
   const first = new Date(`${pace.days[0].date}T00:00:00Z`).getUTCDay(); // 0 = Sunday
   const lead = (first + 6) % 7;
   const max = Math.max(1, ...pace.days.map((d) => d.spent));
-  const showAllowance = pace.perDay != null && pace.status !== "lewat";
+  const anyAhead = pace.days.some((d) => d.ahead);
   return (
     <div>
       <ol className="grid grid-cols-7" aria-label="Belanja per hari">
@@ -27,34 +26,55 @@ export function PaceCalendar({ pace, today }: { pace: MonthPace; today: string }
           const isToday = d.date === today;
           const future = d.date > today;
           const size = d.spent ? Math.round(6 + 10 * Math.sqrt(d.spent / max)) : 0;
-          const label = `${day}: ${d.spent ? `belanja ${formatIDR(d.spent)}${d.ahead ? ", melewati laju" : ""}` : future ? "belum datang" : "tanpa belanja"}`;
+          const cell = `relative flex h-12 flex-col px-1 pt-1 font-narrow text-[15px] font-medium ${d.ahead ? "text-merah" : future ? "text-ink-3" : ""}`;
+          const body = (
+            <>
+              <span className="relative grid h-7 w-7 place-items-center">
+                {day}
+                {isToday && (
+                  // A hand-drawn marker loop: offset and tilted, numeral left in ink.
+                  <span aria-hidden className="absolute -inset-x-1.5 -inset-y-0.5 -rotate-12 rounded-[50%] border-2 border-marker [border-top-left-radius:45%_60%]" />
+                )}
+              </span>
+              {size > 0 && (
+                <span aria-hidden className={`absolute bottom-1.5 left-1/2 -translate-x-1/2 rounded-full ${d.ahead ? "bg-merah" : "bg-ink"}`} style={{ width: size, height: size }} />
+              )}
+            </>
+          );
           return (
             <li key={d.date} className="border-t border-rule">
-              <Link
-                href={`/transaksi?bulan=${d.date.slice(0, 7)}#t-${d.date}`}
-                aria-label={label}
-                className={`relative flex h-12 flex-col px-1 pt-1 font-narrow text-[15px] font-medium hover:bg-rule/40 ${d.ahead ? "text-merah" : future ? "text-ink-3" : ""}`}
-              >
-                <span className="relative grid h-7 w-7 place-items-center">
-                  {day}
-                  {isToday && (
-                    // A hand-drawn marker loop: offset and tilted, numeral left in ink.
-                    <span aria-hidden className="absolute -inset-x-1.5 -inset-y-0.5 -rotate-12 rounded-[50%] border-2 border-marker [border-top-left-radius:45%_60%]" />
-                  )}
-                </span>
-                {size > 0 && (
-                  <span aria-hidden className={`absolute bottom-1.5 left-1/2 -translate-x-1/2 rounded-full ${d.ahead ? "bg-merah" : "bg-ink"}`} style={{ width: size, height: size }} />
-                )}
-                {future && showAllowance && (
-                  <span aria-hidden className="absolute bottom-1 left-1 font-sans text-[10px] text-ink-3">
-                    {shortIDR(pace.perDay!)}
-                  </span>
-                )}
-              </Link>
+              {/* Only days with spending open their transactions; an empty day has nothing to show. */}
+              {d.spent > 0 ? (
+                <Link
+                  href={`/transaksi?bulan=${d.date.slice(0, 7)}#t-${d.date}`}
+                  aria-label={`${day}: belanja ${formatIDR(d.spent)}${d.ahead ? ", melewati laju" : ""}. Lihat transaksi`}
+                  className={`${cell} hover:bg-rule/40`}
+                >
+                  {body}
+                </Link>
+              ) : (
+                <div className={cell} aria-label={isToday ? `${day}: hari ini` : undefined}>
+                  {body}
+                </div>
+              )}
             </li>
           );
         })}
       </ol>
+      <ul className="mt-3 flex flex-wrap gap-x-4 gap-y-1.5 border-t border-rule pt-2.5 text-xs text-ink-2">
+        <li className="flex items-center gap-1.5">
+          <span aria-hidden className="h-2.5 w-2.5 rounded-full bg-ink" /> Ada belanja (makin besar, makin banyak)
+        </li>
+        {anyAhead && (
+          <li className="flex items-center gap-1.5">
+            <span aria-hidden className="h-2.5 w-2.5 rounded-full bg-merah" /> Belanja terlalu cepat untuk tanggalnya
+          </li>
+        )}
+        <li className="flex items-center gap-1.5">
+          <span aria-hidden className="h-3 w-4 -rotate-12 rounded-[50%] border-2 border-marker" /> Hari ini
+        </li>
+        <li className="w-full text-ink-3">Ketuk tanggal yang bertitik untuk melihat transaksinya.</li>
+      </ul>
     </div>
   );
 }

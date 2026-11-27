@@ -18,10 +18,10 @@ import { dateLabel, monthLabel, timeWIB } from "@/lib/labels";
 import { formatIDR } from "@/lib/money";
 import { ruleSuggestions } from "@/lib/suggestions";
 
-const VERDICT: Record<PaceStatus, { word: string; tone: string }> = {
-  aman: { word: "Aman", tone: "text-aman" },
-  mepet: { word: "Mepet", tone: "text-mepet" },
-  lewat: { word: "Lewat", tone: "text-merah" },
+const VERDICT: Record<PaceStatus, { word: string; tone: string; meaning: string }> = {
+  aman: { word: "Aman", tone: "text-aman", meaning: "Belanja bulan ini masih sesuai jatah." },
+  mepet: { word: "Mepet", tone: "text-mepet", meaning: "Belanja lebih cepat dari jalannya bulan. Rem sedikit." },
+  lewat: { word: "Lewat", tone: "text-merah", meaning: "Jatah belanja bulan ini sudah habis." },
 };
 const shortMonth = (m: string) => new Intl.DateTimeFormat("id-ID", { month: "short", timeZone: "UTC" }).format(new Date(`${m}-01T00:00:00Z`));
 const nowWIB = () => new Intl.DateTimeFormat("id-ID", { hour: "2-digit", minute: "2-digit", timeZone: "Asia/Jakarta" }).format(new Date());
@@ -84,7 +84,10 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
         <section aria-label="Status bulan" className="pb-3 pt-1">
           {verdict ? (
             <>
-              <p className={`font-narrow text-[46px] font-bold leading-none ${verdict.tone}`}>{verdict.word}</p>
+              <p className="flex flex-wrap items-baseline gap-x-3">
+                <span className={`font-narrow text-[46px] font-bold leading-none ${verdict.tone}`}>{verdict.word}</span>
+                <span className="text-sm text-ink-2">{verdict.meaning}</span>
+              </p>
               {isCurrent ? (
                 <p className="mt-1.5 text-pretty text-[15px] text-ink-2">
                   {pace.remaining! >= 0 ? (

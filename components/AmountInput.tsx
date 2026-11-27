@@ -6,7 +6,7 @@ import { parseRupiah } from "@/lib/money";
 const plain = new Intl.NumberFormat("id-ID");
 
 /** Numeric keypad on phones; adds thousand separators on blur, but never rewrites input it cannot parse (e.g. "12,5"). */
-export function AmountInput({ defaultValue, className }: { defaultValue?: number; className?: string }) {
+export function AmountInput({ defaultValue, className, autoFocus }: { defaultValue?: number; className?: string; autoFocus?: boolean }) {
   const [value, setValue] = useState(defaultValue ? plain.format(defaultValue) : "");
   return (
     <input
@@ -15,6 +15,7 @@ export function AmountInput({ defaultValue, className }: { defaultValue?: number
       autoComplete="off"
       placeholder="0"
       required
+      autoFocus={autoFocus}
       value={value}
       onChange={(e) => setValue(e.target.value)}
       onBlur={() => {

@@ -4,7 +4,8 @@ import { useEffect, useRef, useState } from "react";
 import { saveTransaction } from "@/app/(app)/transaksi/actions";
 import { todayJakarta } from "@/lib/dates";
 import type { Account, Category, Transaction } from "@/lib/db/schema";
-import { TXN_TYPE_LABEL } from "@/lib/labels";
+import { dateLabel, TXN_TYPE_LABEL } from "@/lib/labels";
+import { formatIDR, parseRupiah } from "@/lib/money";
 import { useKeepValuesAction } from "./ActionForm";
 import { inputClass, primaryButton } from "./styles";
 import { AmountInput } from "./AmountInput";
@@ -17,11 +18,24 @@ type Props = {
 };
 
 const TYPES: Transaction["type"][] = ["expense", "income", "transfer"];
+const SHOWN_CATEGORIES = 6;
+const dayBefore = (d: string) => new Date(Date.parse(`${d}T00:00:00Z`) - 864e5).toISOString().slice(0, 10);
 
 export function TransactionForm({ accounts, categories, defaults, initial }: Props) {
-  const [state, onSubmit, pending] = useKeepValuesAction(saveTransaction);
+  const [state, submit, pending] = useKeepValuesAction(saveTransaction);
+  const [summary, setSummary] = useState("");
+  // Remember what was sent, so the confirmation can say exactly what got saved.
+  const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    const fd = new FormData(e.currentTarget);
+    const cat = [...categories.expense, ...categories.income].find((c) => c.id === Number(fd.get("categoryId")))?.name;
+    const amount = parseRupiah(String(fd.get("amount") ?? ""));
+    setSummary([cat ?? TXN_TYPE_LABEL[type], amount ? formatIDR(amount) : "", dateLabel(String(fd.get("occurredOn")))].filter(Boolean).join(" · "));
+    submit(e);
+  };
   const [type, setType] = useState<Transaction["type"]>(initial?.type ?? defaults.type ?? "expense");
   const cats = type === "transfer" ? [] : categories[type];
+  const [allCats, setAllCats] = useState(() => cats.findIndex((c) => c.id === initial?.categoryId) >= SHOWN_CATEGORIES);
+  const visibleCats = allCats ? cats : cats.slice(0, SHOWN_CATEGORIES);
   const [date, setDate] = useState(initial?.occurredOn ?? defaults.occurredOn);
   const autoDate = useRef(initial ? null : defaults.occurredOn);
   const [saved, setSaved] = useState(0);
@@ -67,13 +81,21 @@ export function TransactionForm({ accounts, categories, defaults, initial }: Pro
         ))}
       </fieldset>
 
-      <AmountInput key={saved} defaultValue={saved ? undefined : initial?.amount} className={`${inputClass} font-narrow text-3xl! font-bold`} />
+      <label className="block text-sm text-ink-2">
+        Nominal
+        <span className="relative mt-1 block">
+          <span aria-hidden className="absolute left-3 top-1/2 -translate-y-1/2 font-narrow text-2xl font-bold text-ink-3">
+            Rp
+          </span>
+          <AmountInput key={saved} autoFocus={!initial} defaultValue={saved ? undefined : initial?.amount} className={`${inputClass} pl-12 font-narrow text-3xl! font-bold`} />
+        </span>
+      </label>
 
       {type !== "transfer" && (
         <fieldset>
           <legend className="mb-2 text-sm text-ink-2">Kategori</legend>
           <div className="flex flex-wrap gap-2">
-            {cats.map((c, i) => (
+            {visibleCats.map((c, i) => (
               <label key={c.id} className="cursor-pointer">
                 <input type="radio" name="categoryId" value={c.id} defaultChecked={initial?.categoryId === c.id} required={i === 0} className="peer sr-only" />
                 <span className="block rounded-full border border-ink/30 bg-sheet px-3.5 py-2 text-sm peer-checked:border-ink peer-checked:bg-ink peer-checked:text-paper peer-focus-visible:outline-2 peer-focus-visible:outline-marker">
@@ -81,6 +103,11 @@ export function TransactionForm({ accounts, categories, defaults, initial }: Pro
                 </span>
               </label>
             ))}
+            {cats.length > SHOWN_CATEGORIES && !allCats && (
+              <button type="button" onClick={() => setAllCats(true)} className="rounded-full border border-dashed border-ink/40 px-3.5 py-2 text-sm text-ink-2 hover:border-ink">
+                Lainnya ({cats.length - SHOWN_CATEGORIES})
+              </button>
+            )}
           </div>
         </fieldset>
       )}
@@ -113,16 +140,42 @@ export function TransactionForm({ accounts, categories, defaults, initial }: Pro
         )}
       </div>
 
-      <label className="block text-sm text-ink-2">
-        Tanggal
-        <input name="occurredOn" type="date" value={date} onChange={(e) => setDate(e.target.value)} required className={`${inputClass} mt-1`} />
-      </label>
+      <fieldset>
+        <legend className="mb-1 text-sm text-ink-2">Tanggal</legend>
+        <div className="flex flex-wrap items-center gap-2">
+          {[
+            { label: "Hari ini", value: todayJakarta() },
+            { label: "Kemarin", value: dayBefore(todayJakarta()) },
+          ].map((q) => (
+            <button
+              key={q.label}
+              type="button"
+              onClick={() => setDate(q.value)}
+              aria-pressed={date === q.value}
+              className={`rounded-full border px-3.5 py-2 text-sm ${date === q.value ? "border-ink bg-ink text-paper" : "border-ink/30 bg-sheet"}`}
+            >
+              {q.label}
+            </button>
+          ))}
+          <input
+            name="occurredOn"
+            type="date"
+            value={date}
+            onChange={(e) => setDate(e.target.value)}
+            required
+            aria-label="Tanggal lain"
+            className={`${inputClass} w-auto flex-1`}
+          />
+        </div>
+      </fieldset>
       <input ref={noteRef} name="note" defaultValue={initial?.note ?? ""} maxLength={500} placeholder="Catatan (opsional)" className={inputClass} aria-label="Catatan" />
 
       {/* Stays above the bottom nav so a recap of many entries never needs a scroll to save. */}
       <div className="sticky bottom-[calc(70px+env(safe-area-inset-bottom))] -mx-4 space-y-2 border-t border-rule bg-paper px-4 py-3 lg:bottom-0">
         <p aria-live="polite" className="empty:hidden text-sm">
-          {state?.error ? <span className="text-merah">{state.error}</span> : state?.ok ? <span className="font-semibold text-aman">{state.ok}</span> : null}
+          {state?.error ? <span className="text-merah">{state.error}</span> : state?.ok ? (
+            <span className="font-semibold text-aman">{initial ? state.ok : `Tersimpan: ${summary}. Lanjut catat berikutnya.`}</span>
+          ) : null}
         </p>
         <button disabled={pending} className={`${primaryButton} h-12 w-full text-base`}>
           {pending ? "Menyimpan…" : "Simpan"}
