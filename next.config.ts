@@ -1,16 +1,13 @@
 import type { NextConfig } from "next";
 
-const origin = process.env.APP_ORIGIN;
-
+// Server Actions reject cross-origin posts by comparing Origin with the forwarded Host;
+// Nginx forwards the public Host (deploy/nginx-finance.conf), so no allowedOrigins entry is needed.
 const nextConfig: NextConfig = {
   output: "standalone",
   turbopack: {
     rules: {
       "*.css": { loaders: ["@tailwindcss/turbopack"], as: "*.css" },
     },
-  },
-  experimental: {
-    serverActions: { allowedOrigins: origin ? [new URL(origin).host] : [] },
   },
   async headers() {
     return [

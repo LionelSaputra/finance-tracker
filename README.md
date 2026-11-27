@@ -1,36 +1,95 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Finance Tracker
 
-## Getting Started
+Aplikasi keuangan pribadi (satu pengguna): catat pemasukan, pengeluaran, dan transfer; budget per kategori; target tabungan; saran otomatis (aturan + AI Claude); angka **dana aman untuk trading**; dan API bertoken untuk aplikasi trading. Tampilan dibuat untuk HP (bisa "Add to Home Screen").
 
-First, run the development server:
+- Rancangan dan rencana: `docs/superpowers/specs/` dan `docs/superpowers/plans/`
+- API untuk aplikasi trading: [`docs/api.md`](docs/api.md)
+
+## Menjalankan di laptop (development)
+
+Butuh Node.js 24 atau lebih baru.
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+cp .env.example .env.local      # lalu isi nilainya (lihat "Isi .env")
+npm run dev                     # buka http://localhost:3000
+npm test                        # unit test
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Isi `.env`
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+| Variabel | Cara membuat |
+|---|---|
+| `APP_PASSWORD_HASH` | `npm run hash-password` → ketik password (minimal 12 karakter) → salin baris `APP_PASSWORD_HASH=...` |
+| `SESSION_SECRET` | `openssl rand -hex 32` |
+| `TRADING_API_TOKEN` | `openssl rand -hex 32` (kosongkan kalau belum butuh API trading) |
+| `ANTHROPIC_API_KEY` | opsional, dari console.anthropic.com; kosong = tombol saran AI disembunyikan |
+| `AI_MODEL` | default `claude-opus-5-5`; `claude-haiku-5-5` jauh lebih murah |
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Password tidak pernah disimpan, hanya hash-nya. Ganti `SESSION_SECRET` = semua perangkat otomatis logout.
 
-## Learn More
+## Deploy ke VPS (Docker + Nginx di host)
 
-To learn more about Next.js, take a look at the following resources:
+Contoh memakai subdomain `finance.domainmu.com`.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+1. **DNS:** buat record `A` untuk `finance.domainmu.com` → IP VPS.
+2. **Ambil kode di VPS:**
+   ```bash
+   git clone https://github.com/LionelSaputra/finance-tracker.git
+   cd finance-tracker
+   ```
+3. **Buat `.env`:** `cp .env.example .env`, lalu isi seperti tabel di atas. `APP_PASSWORD_HASH` paling mudah dibuat di laptop (`npm run hash-password`) lalu ditempel ke `.env` di VPS.
+4. **Folder data** (container berjalan sebagai user id 1000):
+   ```bash
+   mkdir -p data && sudo chown 1000:1000 data
+   ```
+5. **Jalankan:**
+   ```bash
+   docker compose up -d --build
+   curl -I http://127.0.0.1:3100/login     # harus 200
+   ```
+6. **Nginx:** salin `deploy/nginx-finance.conf` ke `/etc/nginx/sites-available/finance`, ganti `finance.example.com` dengan subdomainmu, lalu:
+   ```bash
+   sudo ln -s /etc/nginx/sites-available/finance /etc/nginx/sites-enabled/finance
+   sudo nginx -t && sudo systemctl reload nginx
+   sudo certbot --nginx -d finance.domainmu.com
+   ```
+7. Buka `https://finance.domainmu.com`, login, lalu tambahkan akun (rekening, e-wallet, tunai) beserta saldonya sekarang.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Aplikasi hanya mendengarkan di `127.0.0.1:3100`, jadi dari internet hanya bisa diakses lewat Nginx (HTTPS). Jangan buka port 3100 di firewall.
 
-## Deploy on Vercel
+### Update ke versi baru
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```bash
+cd finance-tracker
+git pull
+docker compose up -d --build
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Migrasi database berjalan otomatis saat container start.
+
+## Backup
+
+- Aplikasi membuat backup otomatis sekali sehari ke `data/backups/finance-YYYY-MM-DD.db` dan menyimpan 14 terakhir.
+- Backup itu masih di VPS yang sama. **Salin secara berkala ke tempat lain**, misalnya dari laptop:
+  ```bash
+  scp user@vps:finance-tracker/data/backups/*.db ./backup-finance/
+  ```
+- Export CSV semua transaksi: menu ⚙ Pengaturan → "Export transaksi (CSV)".
+
+### Restore dari backup
+
+```bash
+docker compose down
+cp data/backups/finance-2026-11-27.db data/finance.db
+rm -f data/finance.db-wal data/finance.db-shm
+docker compose up -d
+```
+
+## Lupa password
+
+Buat hash baru dengan `npm run hash-password`, ganti `APP_PASSWORD_HASH` di `.env` VPS, lalu `docker compose up -d`.
+
+## Saran AI
+
+Tombol "Minta saran AI" di Beranda muncul kalau `ANTHROPIC_API_KEY` diisi. Yang dikirim ke Claude hanya ringkasan angka bulan itu (total per kategori, budget, dana darurat, target, dana aman trading) — **tanpa catatan transaksi dan tanpa nama akun**. Setiap klik = satu permintaan berbayar (sekitar Rp1.000 dengan Opus). Saran AI bukan nasihat keuangan profesional.

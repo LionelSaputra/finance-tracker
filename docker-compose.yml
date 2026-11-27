@@ -1,0 +1,12 @@
+services:
+  finance:
+    build: .
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      DATABASE_PATH: /app/data/finance.db
+    volumes:
+      - ./data:/app/data
+    # Only reachable from the VPS itself; Nginx on the host serves it over HTTPS.
+    ports:
+      - "127.0.0.1:3100:3000"
