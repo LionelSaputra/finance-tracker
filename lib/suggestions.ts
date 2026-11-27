@@ -22,6 +22,9 @@ export function ruleSuggestions(s: FinanceSnapshot): Suggestion[] {
     }
   }
 
+  if (!s.split && s.expense > 0) {
+    out.push({ level: "info", text: "Belum ada pemasukan tercatat bulan ini, jadi pembagian 50/30/20 belum bisa dihitung" });
+  }
   if (s.split) {
     if (s.split.needsPct > 50) out.push({ level: "warn", text: `Kebutuhan ${s.split.needsPct}% dari pemasukan (batas 50%)` });
     if (s.split.wantsPct > 30) out.push({ level: "warn", text: `Keinginan ${s.split.wantsPct}% dari pemasukan (batas 30%)` });

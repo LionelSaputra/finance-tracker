@@ -75,7 +75,7 @@ Migrasi database berjalan otomatis saat container start.
   ```bash
   scp user@vps:finance-tracker/data/backups/*.db ./backup-finance/
   ```
-- Export CSV semua transaksi: menu ⚙ Pengaturan → "Export transaksi (CSV)".
+- Export CSV semua transaksi: menu ⚙ Pengaturan → "Export transaksi (CSV)". File memakai pemisah koma; Excel dengan pengaturan Indonesia memakai titik koma, jadi buka lewat **Data → From Text/CSV** dan pilih pemisah *Comma*.
 
 ### Restore dari backup
 
@@ -92,4 +92,4 @@ Buat hash baru dengan `npm run hash-password`, ganti `APP_PASSWORD_HASH` di `.en
 
 ## Saran AI
 
-Tombol "Minta saran AI" di Beranda muncul kalau `ANTHROPIC_API_KEY` diisi. Yang dikirim ke Claude hanya ringkasan angka bulan itu (total per kategori, budget, dana darurat, target, dana aman trading) — **tanpa catatan transaksi dan tanpa nama akun**. Setiap klik = satu permintaan berbayar (sekitar Rp1.000 dengan Opus). Saran AI bukan nasihat keuangan profesional.
+Tombol "Minta saran AI" di Beranda muncul kalau `ANTHROPIC_API_KEY` diisi. Yang dikirim ke Claude hanya ringkasan angka bulan itu (total per kategori, budget, dana darurat, target tabungan beserta namanya, dana aman trading) — **tanpa catatan transaksi dan tanpa nama rekening harian/dana darurat/trading**. Nama target tabungan ikut terkirim, jadi jangan beri nama yang sensitif. Setiap klik = satu permintaan berbayar (sekitar Rp1.000 dengan Opus). Saran AI bukan nasihat keuangan profesional.

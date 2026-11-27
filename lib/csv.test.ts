@@ -10,5 +10,7 @@ describe("toCsv", () => {
     expect(toCsv([["=SUM(A1)"]])).toBe("'=SUM(A1)\r\n");
     expect(toCsv([["+1", "-1", "@x"]])).toBe("'+1,'-1,'@x\r\n");
     expect(toCsv([[-5000]])).toBe("-5000\r\n");
+    // Indonesian Excel splits on ";", so a ";=" inside a note must stay inside one quoted cell.
+    expect(toCsv([["x;=1+2;"]])).toBe('"x;=1+2;"\r\n');
   });
 });

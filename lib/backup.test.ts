@@ -27,6 +27,14 @@ describe("runDailyBackup", () => {
     expect(await runDailyBackup(sqlite, dir, "2026-11-27")).toBeNull();
   });
 
+  it("recovers from a backup that died half-way", async () => {
+    // A crashed run leaves only a partial .tmp, which must neither block the day nor survive.
+    writeFileSync(path.join(dir, "finance-2026-11-27.db.tmp"), "half a backup");
+    const file = await runDailyBackup(sqlite, dir, "2026-11-27");
+    expect(file && new Database(file, { readonly: true }).prepare("select 1 as ok").get()).toEqual({ ok: 1 });
+    expect(readdirSync(dir)).not.toContain("finance-2026-11-27.db.tmp");
+  });
+
   it("keeps only the newest 14 backups", async () => {
     for (let d = 1; d <= 15; d++) writeFileSync(path.join(dir, `finance-2026-10-${String(d).padStart(2, "0")}.db`), "");
     writeFileSync(path.join(dir, "catatan.txt"), "bukan backup");

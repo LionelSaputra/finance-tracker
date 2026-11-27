@@ -79,7 +79,8 @@ export async function requestAiInsight(
   db: Db,
   month: string,
   today: string,
-  client: AiClient = new Anthropic(),
+  // Below Nginx's proxy_read_timeout (180s), so a slow answer fails here instead of a 504 after we already paid for it.
+  client: AiClient = new Anthropic({ timeout: 150_000, maxRetries: 1 }),
 ): Promise<{ ok: true; insight: AiInsight } | { ok: false; error: string }> {
   const snap = computeSnapshot(loadFinanceData(db), month, today);
   const summary = buildAiSummary(snap, ruleSuggestions(snap));

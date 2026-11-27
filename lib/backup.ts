@@ -1,4 +1,4 @@
-import { existsSync, mkdirSync, readdirSync, rmSync } from "node:fs";
+import { existsSync, mkdirSync, readdirSync, renameSync, rmSync } from "node:fs";
 import path from "node:path";
 import type Database from "better-sqlite3";
 
@@ -9,7 +9,11 @@ export async function runDailyBackup(sqlite: Database.Database, dir: string, tod
   mkdirSync(dir, { recursive: true });
   const file = path.join(dir, `finance-${today}.db`);
   if (existsSync(file)) return null;
-  await sqlite.backup(file); // SQLite online backup: consistent even while the app writes
+  // Write to .tmp and rename, so a crash mid-backup never leaves a partial file that blocks the day or counts as a backup.
+  const tmp = `${file}.tmp`;
+  rmSync(tmp, { force: true });
+  await sqlite.backup(tmp); // SQLite online backup: consistent even while the app writes
+  renameSync(tmp, file);
   const old = readdirSync(dir).filter((f) => BACKUP_FILE.test(f)).sort();
   for (const f of old.slice(0, Math.max(0, old.length - keep))) rmSync(path.join(dir, f));
   return file;

@@ -55,6 +55,13 @@ describe("transactions", () => {
     expect(loadFinanceData(db).txns[0].source).toBe("trading");
   });
 
+  it("answers a retry as duplicate even if the account was archived since", () => {
+    const lama = createAccount(db, { name: "Lama", kind: "spending", openingBalance: 50_000 });
+    const first = createTransaction(db, { ...expense(), accountId: lama, amount: 50_000, externalId: "t-9" }, "trading");
+    archiveAccount(db, lama);
+    expect(createTransaction(db, { ...expense(), accountId: lama, amount: 50_000, externalId: "t-9" }, "trading")).toEqual({ id: first.id, duplicate: true });
+  });
+
   it("rejects unknown and archived accounts", () => {
     expect(() => createTransaction(db, { ...expense(), accountId: 999 })).toThrow("Akun tidak ditemukan");
     const old = createAccount(db, { name: "Lama", kind: "spending", openingBalance: 0 });

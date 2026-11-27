@@ -37,11 +37,12 @@ function validated(db: Db, input: TxnInput) {
 
 export function createTransaction(db: Db, input: TxnInput, source: "manual" | "trading" = "manual"): { id: number; duplicate: boolean } {
   return db.transaction((tx) => {
-    const values = validated(tx as unknown as Db, input);
-    if (values.externalId) {
-      const existing = tx.select({ id: transactions.id }).from(transactions).where(eq(transactions.externalId, values.externalId)).get();
+    // A retry of an already-recorded row is a duplicate, whatever changed since (e.g. the account got archived).
+    if (input.externalId) {
+      const existing = tx.select({ id: transactions.id }).from(transactions).where(eq(transactions.externalId, input.externalId)).get();
       if (existing) return { id: existing.id, duplicate: true };
     }
+    const values = validated(tx as unknown as Db, input);
     const { id } = tx.insert(transactions).values({ ...values, source }).returning({ id: transactions.id }).get();
     return { id, duplicate: false };
   });

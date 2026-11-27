@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { saveTransaction } from "@/app/(app)/transaksi/actions";
+import { todayJakarta } from "@/lib/dates";
 import type { Account, Category, Transaction } from "@/lib/db/schema";
 import { TXN_TYPE_LABEL } from "@/lib/labels";
 import { inputClass, useKeepValuesAction } from "./ActionForm";
@@ -20,6 +21,21 @@ export function TransactionForm({ accounts, categories, defaults, initial }: Pro
   const [state, onSubmit, pending] = useKeepValuesAction(saveTransaction);
   const [type, setType] = useState<Transaction["type"]>(initial?.type ?? "expense");
   const cats = type === "transfer" ? [] : categories[type];
+  const [date, setDate] = useState(initial?.occurredOn ?? defaults.occurredOn);
+  const autoDate = useRef(initial ? null : defaults.occurredOn);
+
+  // A home-screen app can sit open overnight: roll an untouched default date over to today when it comes back.
+  useEffect(() => {
+    const refresh = () => {
+      const old = autoDate.current;
+      const today = todayJakarta();
+      if (document.visibilityState !== "visible" || old === null || old === today) return;
+      autoDate.current = today;
+      setDate((d) => (d === old ? today : d));
+    };
+    document.addEventListener("visibilitychange", refresh);
+    return () => document.removeEventListener("visibilitychange", refresh);
+  }, []);
 
   return (
     <form onSubmit={onSubmit} className="space-y-4">
@@ -82,7 +98,7 @@ export function TransactionForm({ accounts, categories, defaults, initial }: Pro
         )}
       </div>
 
-      <input name="occurredOn" type="date" defaultValue={initial?.occurredOn ?? defaults.occurredOn} required className={inputClass} aria-label="Tanggal" />
+      <input name="occurredOn" type="date" value={date} onChange={(e) => setDate(e.target.value)} required className={inputClass} aria-label="Tanggal" />
       <input name="note" defaultValue={initial?.note ?? ""} maxLength={500} placeholder="Catatan (opsional)" className={inputClass} aria-label="Catatan" />
 
       {state?.error && (

@@ -27,7 +27,7 @@ export function AiInsightCard({ month, insight }: { month: string; insight: AiIn
           <p className="text-xs text-slate-500">Dibuat {when(insight.createdAt)}. Saran AI bukan nasihat keuangan profesional.</p>
         </>
       ) : (
-        <p className="text-sm text-slate-600">Minta saran berdasarkan ringkasan angka bulan ini. Catatan transaksi dan nama akun tidak dikirim.</p>
+        <p className="text-sm text-slate-600">Minta saran berdasarkan ringkasan angka bulan ini. Yang dikirim hanya angka per kategori, budget, dan nama target tabungan; catatan transaksi dan nama rekening tidak dikirim.</p>
       )}
       <ActionForm action={askAi.bind(null, month)} submitLabel={insight ? "Minta saran baru" : "Minta saran AI"} />
     </section>

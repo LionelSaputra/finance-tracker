@@ -2,7 +2,8 @@
 const cell = (v: string | number) => {
   if (typeof v === "number") return String(v);
   const safe = /^[=+\-@]/.test(v) ? `'${v}` : v;
-  return /[",\r\n]/.test(safe) ? `"${safe.replace(/"/g, '""')}"` : safe;
+  // ";" too: Excel with Indonesian settings splits on it.
+  return /[",;\r\n]/.test(safe) ? `"${safe.replace(/"/g, '""')}"` : safe;
 };
 
 export function toCsv(rows: (string | number)[][]): string {

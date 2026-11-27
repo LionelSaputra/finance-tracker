@@ -40,6 +40,12 @@ describe("ruleSuggestions", () => {
     expect(s).toContainEqual({ level: "info", text: "Tabungan & investasi baru 10% dari pemasukan (target 20%)" });
   });
 
+  it("says why there is no 50/30/20 check when no income is recorded", () => {
+    const msg = { level: "info", text: "Belum ada pemasukan tercatat bulan ini, jadi pembagian 50/30/20 belum bisa dihitung" };
+    expect(ruleSuggestions(snap({ income: 0, expense: 300_000, split: null }))).toContainEqual(msg);
+    expect(ruleSuggestions(snap({ income: 0, expense: 0, split: null }))).not.toContainEqual(msg);
+  });
+
   it("reports emergency fund coverage and goal pace", () => {
     const s = ruleSuggestions(snap({
       emergency: { months: 6, target: 24_000_000, current: 21_750_000, gap: 2_250_000, monthsCovered: 5.4375 },
