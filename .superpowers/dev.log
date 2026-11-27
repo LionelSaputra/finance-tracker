@@ -55,3 +55,66 @@
  POST /pengaturan 200 in 36ms (next.js: 0.8ms, application-code: 35ms)
   └─ ƒ settingsAction(undefined, {}) in 13ms app/(app)/pengaturan/actions.ts
  GET /pengaturan 200 in 60ms (next.js: 0.8ms, application-code: 59ms)
+ GET /budget 307 in 22ms (next.js: 0.7ms, application-code: 22ms)
+ GET /login 200 in 18ms (next.js: 0.9ms, application-code: 17ms)
+✓ Compiled in 54ms
+ GET /login 200 in 71ms (next.js: 1.6ms, application-code: 69ms)
+✓ Compiled in 57ms
+ GET /login 200 in 81ms (next.js: 1.8ms, application-code: 79ms)
+ GET /pengaturan 200 in 123ms (next.js: 1.4ms, application-code: 122ms)
+ GET /pengaturan 200 in 82ms (next.js: 1.0ms, application-code: 81ms)
+✓ Compiled in 65ms
+ GET /login 200 in 139ms (next.js: 5ms, application-code: 134ms)
+ GET /pengaturan 200 in 163ms (next.js: 1.4ms, application-code: 161ms)
+ GET /pengaturan 200 in 98ms (next.js: 1.9ms, application-code: 96ms)
+ GET /login 200 in 53ms (next.js: 1.2ms, application-code: 52ms)
+ GET /login 200 in 45ms (next.js: 3ms, application-code: 42ms)
+ GET /login 200 in 12ms (next.js: 1.4ms, application-code: 11ms)
+ GET /pengaturan 200 in 77ms (next.js: 1.5ms, application-code: 76ms)
+ GET /pengaturan 200 in 35ms (next.js: 0.9ms, application-code: 34ms)
+✓ Compiled in 342ms
+ GET /login 200 in 14ms (next.js: 1.4ms, application-code: 12ms)
+ GET /pengaturan 200 in 48ms (next.js: 1.2ms, application-code: 47ms)
+ GET /manifest.webmanifest 200 in 53ms (next.js: 40ms, application-code: 14ms)
+✓ Compiled in 345ms
+ GET /login 200 in 75ms (next.js: 21ms, application-code: 54ms)
+ GET /login 200 in 67ms (next.js: 0.9ms, application-code: 66ms)
+ GET /login 200 in 33ms (next.js: 1.1ms, application-code: 32ms)
+ GET /pengaturan 200 in 120ms (next.js: 18ms, application-code: 102ms)
+ GET /pengaturan 200 in 70ms (next.js: 1.1ms, application-code: 69ms)
+ GET /pengaturan 200 in 30ms (next.js: 1.4ms, application-code: 29ms)
+ GET /manifest.webmanifest 200 in 7ms (next.js: 1.0ms, application-code: 6ms)
+✓ Compiled in 325ms
+ GET /login 200 in 61ms (next.js: 23ms, application-code: 38ms)
+ GET /login 200 in 34ms (next.js: 0.9ms, application-code: 33ms)
+ GET /pengaturan 200 in 87ms (next.js: 20ms, application-code: 67ms)
+ GET /pengaturan 200 in 30ms (next.js: 1.2ms, application-code: 28ms)
+ GET /manifest.webmanifest 200 in 5ms (next.js: 0.7ms, application-code: 4ms)
+ GET /transaksi/baru 200 in 57ms (next.js: 24ms, application-code: 33ms)
+ POST /transaksi/baru 200 in 8ms (next.js: 0.7ms, application-code: 7ms)
+  └─ ƒ saveTransaction(undefined, {}) in 3ms app/(app)/transaksi/actions.ts
+✓ Compiled in 79ms
+ GET /login 200 in 15ms (next.js: 1.3ms, application-code: 13ms)
+⚠ Fast Refresh had to perform a full reload due to a runtime error.
+ GET /manifest.webmanifest 200 in 33ms (next.js: 0.9ms, application-code: 32ms)
+✓ Compiled in 236ms
+ GET /transaksi/baru 200 in 87ms (next.js: 2ms, application-code: 84ms)
+ GET /transaksi/baru 200 in 80ms (next.js: 0.8ms, application-code: 80ms)
+ GET /login 200 in 32ms (next.js: 1.6ms, application-code: 31ms)
+ GET /manifest.webmanifest 200 in 6ms (next.js: 1.0ms, application-code: 5ms)
+ GET /transaksi/baru 200 in 20ms (next.js: 0.6ms, application-code: 19ms)
+ POST /transaksi/baru 200 in 6ms (next.js: 0.6ms, application-code: 5ms)
+  └─ ƒ saveTransaction(undefined, {}) in 1ms app/(app)/transaksi/actions.ts
+ GET /transaksi 200 in 71ms (next.js: 44ms, application-code: 27ms)
+ POST /transaksi/baru 200 in 599ms (next.js: 0.6ms, application-code: 598ms)
+  └─ ƒ saveTransaction({"error":"Periksa isian: Nominal"}, {}) in 16ms app/(app)/transaksi/actions.ts
+ GET /transaksi/1 200 in 415ms (next.js: 398ms, application-code: 17ms)
+ GET /transaksi 200 in 18ms (next.js: 0.7ms, application-code: 17ms)
+ POST /transaksi/1 200 in 69ms (next.js: 17ms, application-code: 52ms)
+  └─ ƒ saveTransaction(undefined, {}) in 11ms app/(app)/transaksi/actions.ts
+ GET /export 200 in 80ms (next.js: 60ms, application-code: 20ms)
+ GET /export 200 in 14ms (next.js: 0.6ms, application-code: 14ms)
+ GET /transaksi/1 200 in 49ms (next.js: 18ms, application-code: 31ms)
+ GET /transaksi 200 in 18ms (next.js: 0.8ms, application-code: 17ms)
+ POST /transaksi/1 200 in 67ms (next.js: 18ms, application-code: 49ms)
+  └─ ƒ removeTransaction(1, undefined, {}) in 16ms app/(app)/transaksi/actions.ts
