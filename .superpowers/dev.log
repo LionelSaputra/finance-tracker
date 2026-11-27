@@ -1,0 +1,22 @@
+
+> finance-tracker@0.1.0 dev
+> next dev
+
+▲ Next.js 16.4.6 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://172.16.0.2:3000
+- Environments: .env.local
+✓ Ready in 325ms
+✓ Running next.config.ts took 36ms
+- Experiments (use with caution):
+  · serverActions
+
+ GET /login 200 in 193ms (next.js: 114ms, application-code: 79ms)
+ GET /login 200 in 13ms (next.js: 0.8ms, application-code: 12ms)
+ GET / 307 in 46ms (next.js: 20ms, application-code: 27ms)
+ GET /login 200 in 17ms (next.js: 0.8ms, application-code: 16ms)
+ POST /login 200 in 47ms (next.js: 0.7ms, application-code: 46ms)
+  └─ ƒ login(undefined, {}) in 38ms app/(auth)/login/actions.ts
+ GET / 200 in 19ms (next.js: 2ms, application-code: 17ms)
+ POST /login 200 in 90ms (next.js: 0.9ms, application-code: 89ms)
+  └─ ƒ login({"error":"Password salah"}, {}) in 46ms app/(auth)/login/actions.ts
