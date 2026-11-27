@@ -31,6 +31,16 @@ describe("accountBalances", () => {
     expect(accountBalances(d).get(a.id)).toBe(1_250_000);
     expect(accountBalances(d).get(b.id)).toBe(50_000);
   });
+
+  it("ignores entries dated after asOf", () => {
+    const a = acc({ name: "A", kind: "spending", openingBalance: 500_000 });
+    const gaji = cat({ name: "Gaji", kind: "income" });
+    const d = data([a], [gaji], [tx({ occurredOn: "2026-12-25", type: "income", amount: 8_000_000, accountId: a.id, categoryId: gaji.id })]);
+    expect(accountBalances(d, "2026-12-05").get(a.id)).toBe(500_000);
+    expect(accountBalances(d).get(a.id)).toBe(8_500_000);
+    // A salary recorded ahead of time must not raise today's safe amount.
+    expect(computeSnapshot(d, "2026-12", "2026-12-05").safeToTrade.freeCash).toBe(500_000);
+  });
 });
 
 describe("budgetStatus", () => {

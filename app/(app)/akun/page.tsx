@@ -1,6 +1,7 @@
 import { ActionForm, inputClass } from "@/components/ActionForm";
 import { requireSession } from "@/lib/auth/session";
 import { loadFinanceData } from "@/lib/data/load";
+import { todayJakarta } from "@/lib/dates";
 import { getDb } from "@/lib/db";
 import type { Account } from "@/lib/db/schema";
 import { accountBalances } from "@/lib/finance";
@@ -35,7 +36,7 @@ function TargetFields({ a }: { a?: Account }) {
 export default async function AkunPage() {
   await requireSession();
   const data = loadFinanceData(getDb());
-  const balances = accountBalances(data);
+  const balances = accountBalances(data, todayJakarta());
   const active = data.accounts.filter((a) => !a.archived);
 
   return (

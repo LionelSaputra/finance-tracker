@@ -109,6 +109,18 @@ describe("accounts", () => {
     expect(loadFinanceData(db).accounts.find((a) => a.id === dompet)?.openingBalance).toBe(1_300_000);
   });
 
+  it("adjusts against today's balance, not future-dated entries", () => {
+    createTransaction(db, { ...expense(), occurredOn: "2999-01-01", amount: 300_000 });
+    adjustBalance(db, dompet, 1_000_000);
+    expect(loadFinanceData(db).accounts.find((a) => a.id === dompet)?.openingBalance).toBe(1_000_000);
+  });
+
+  it("refuses to archive an account with money coming in later", () => {
+    const nanti = createAccount(db, { name: "Nanti", kind: "spending", openingBalance: 0 });
+    createTransaction(db, { occurredOn: "2999-01-01", type: "income", amount: 10_000, accountId: nanti, categoryId: catId("Gaji") });
+    expect(() => archiveAccount(db, nanti)).toThrow("Saldo harus 0 sebelum akun diarsip");
+  });
+
   it("refuses to archive an account that still holds money", () => {
     const sisa = createAccount(db, { name: "Sisa", kind: "spending", openingBalance: 50_000 });
     expect(() => archiveAccount(db, sisa)).toThrow("Saldo harus 0 sebelum akun diarsip");

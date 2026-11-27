@@ -55,10 +55,12 @@ const inRange = (t: Transaction, r: Range) => t.occurredOn >= r.start && t.occur
 const sum = (xs: number[]) => xs.reduce((a, b) => a + b, 0);
 const pct = (part: number, whole: number) => Math.round((part / whole) * 100);
 
-export function accountBalances(data: FinanceData): Map<number, number> {
+/** Balances including entries up to `asOf` (YYYY-MM-DD); all entries when omitted. */
+export function accountBalances(data: FinanceData, asOf?: string): Map<number, number> {
   const balances = new Map(data.accounts.map((a) => [a.id, a.openingBalance]));
   const add = (id: number, delta: number) => balances.set(id, (balances.get(id) ?? 0) + delta);
   for (const t of data.txns) {
+    if (asOf && t.occurredOn > asOf) continue;
     if (t.type === "income") add(t.accountId, t.amount);
     else if (t.type === "expense") add(t.accountId, -t.amount);
     else if (t.toAccountId != null) {
@@ -78,7 +80,7 @@ export function budgetStatus(spent: number, budget: number): BudgetStatus {
 export function computeSnapshot(data: FinanceData, month: string, today: string): FinanceSnapshot {
   const { accounts, categories, txns, settings } = data;
   const kindOf = new Map(accounts.map((a) => [a.id, a.kind]));
-  const balances = accountBalances(data);
+  const balances = accountBalances(data, today);
   const active = accounts.filter((a) => !a.archived);
   const balanceOfKind = (kind: Account["kind"]) => sum(active.filter((a) => a.kind === kind).map((a) => balances.get(a.id) ?? 0));
 
