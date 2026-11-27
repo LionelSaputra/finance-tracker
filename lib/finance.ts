@@ -132,7 +132,13 @@ export function computeSnapshot(data: FinanceData, month: string, today: string)
       : null;
 
   // Average over the last 3 full months that have any spending; then budgets; else unknown.
-  const pastTotals = [1, 2, 3].map((n) => totalOf("expense", monthRange(addMonths(currentMonth, -n)))).filter((x) => x > 0);
+  // A month only counts if tracking had already started on its first day, so a few recorded days never pass as a month.
+  const trackingStart = txns.reduce<string | null>((min, t) => (min == null || t.occurredOn < min ? t.occurredOn : min), null);
+  const pastTotals = [1, 2, 3]
+    .map((n) => monthRange(addMonths(currentMonth, -n)))
+    .filter((r) => trackingStart != null && r.start >= trackingStart)
+    .map((r) => totalOf("expense", r))
+    .filter((x) => x > 0);
   const budgetTotal = sum(categories.filter((c) => !c.archived && c.kind === "expense").map((c) => c.monthlyBudget ?? 0));
   const avgMonthlyExpense = pastTotals.length ? Math.round(sum(pastTotals) / pastTotals.length) : budgetTotal > 0 ? budgetTotal : null;
 

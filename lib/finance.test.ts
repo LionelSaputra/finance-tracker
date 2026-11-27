@@ -49,7 +49,7 @@ describe("computeSnapshot", () => {
     const makan = cat({ name: "Makan", kind: "expense", group: "needs", monthlyBudget: 3_000_000 });
     const spend = (occurredOn: string, amount: number) => tx({ occurredOn, type: "expense", amount, accountId: dompet.id, categoryId: makan.id });
     const d = data([dompet, darurat, trading], [makan], [
-      spend("2026-08-10", 3_000_000), spend("2026-09-10", 4_000_000), spend("2026-10-10", 5_000_000), spend("2026-11-05", 1_000_000),
+      spend("2026-08-01", 3_000_000), spend("2026-09-10", 4_000_000), spend("2026-10-10", 5_000_000), spend("2026-11-05", 1_000_000),
     ]);
     return { d, dompet, darurat, trading, makan };
   };
@@ -122,6 +122,20 @@ describe("computeSnapshot", () => {
     expect(noBudget.safeToTrade).toEqual({
       amount: 0, freeCash: 5_000_000, remainingBudget: 0, emergencyTarget: null, emergencyCurrent: 0, emergencyGap: null, reason: "belum cukup data",
     });
+  });
+
+  it("does not average a month in which tracking started part-way", () => {
+    // Tracking starts 27 Nov; only 4 days of November are recorded by 1 Dec.
+    const bca = acc({ name: "BCA", kind: "spending", openingBalance: 10_000_000 });
+    const darurat = acc({ name: "Darurat", kind: "emergency", openingBalance: 5_000_000 });
+    const makan = cat({ name: "Makan", kind: "expense", group: "needs", monthlyBudget: 5_000_000 });
+    const txns = [tx({ occurredOn: "2026-11-28", type: "expense", amount: 500_000, accountId: bca.id, categoryId: makan.id })];
+    const withBudget = computeSnapshot(data([bca, darurat], [makan], txns), "2026-12", "2026-12-01");
+    expect(withBudget.avgMonthlyExpense).toBe(5_000_000);
+    expect(withBudget.safeToTrade.amount).toBe(0);
+
+    const noBudget = computeSnapshot(data([bca, darurat], [{ ...makan, monthlyBudget: null }], txns), "2026-12", "2026-12-01");
+    expect(noBudget.safeToTrade).toMatchObject({ amount: 0, reason: "belum cukup data" });
   });
 
   it("never returns a negative safe amount", () => {

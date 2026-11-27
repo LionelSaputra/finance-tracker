@@ -22,6 +22,9 @@ export function SafeToTradeCard({ s }: { s: SafeToTrade }) {
             <dt className="text-slate-600">− Kekurangan dana darurat</dt>
             <dd>{formatIDR(s.emergencyGap ?? 0)}</dd>
           </div>
+          <p className="pt-1 text-xs text-slate-500">
+            Dana darurat {formatIDR(s.emergencyCurrent)} dari target {formatIDR(s.emergencyTarget ?? 0)}
+          </p>
         </dl>
       )}
     </section>
