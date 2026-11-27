@@ -15,7 +15,7 @@ export function SafeToTradeCard({ s }: { s: SafeToTrade }) {
             <dd>{formatIDR(s.freeCash)}</dd>
           </div>
           <div className="flex justify-between">
-            <dt className="text-slate-600">− Sisa budget bulan ini</dt>
+            <dt className="text-slate-600">− Sisa kebutuhan bulan ini</dt>
             <dd>{formatIDR(s.remainingBudget)}</dd>
           </div>
           <div className="flex justify-between">

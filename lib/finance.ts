@@ -154,11 +154,14 @@ export function computeSnapshot(data: FinanceData, month: string, today: string)
         })();
 
   const spentThisMonth = byCategory(monthRange(currentMonth));
-  const remainingBudget = sum(
+  const budgetLeft = sum(
     categories
       .filter((c) => !c.archived && c.kind === "expense" && c.monthlyBudget != null)
       .map((c) => Math.max(0, c.monthlyBudget! - (spentThisMonth.get(c.id) ?? 0))),
   );
+  // Reserve the larger of unspent budgets and the unspent part of a usual month, so missing or partial budgets never free up living money.
+  const usualLeft = avgMonthlyExpense == null ? 0 : Math.max(0, avgMonthlyExpense - totalOf("expense", monthRange(currentMonth)));
+  const remainingBudget = Math.max(budgetLeft, usualLeft);
   const freeCash = balanceOfKind("spending");
   const safeToTrade: SafeToTrade = emergency
     ? {

@@ -68,7 +68,8 @@ describe("computeSnapshot", () => {
     const snap = computeSnapshot(mainFixture().d, "2026-11", "2026-11-27");
     expect(snap.avgMonthlyExpense).toBe(4_000_000);
     expect(snap.safeToTrade).toEqual({
-      amount: 1_850_000, freeCash: 6_100_000, remainingBudget: 2_000_000,
+      // Usual month 4.000.000 − 1.000.000 spent = 3.000.000 reserved, more than the 2.000.000 left in budgets.
+      amount: 850_000, freeCash: 6_100_000, remainingBudget: 3_000_000,
       emergencyTarget: 24_000_000, emergencyCurrent: 21_750_000, emergencyGap: 2_250_000, reason: null,
     });
     expect(snap.emergency).toEqual({ months: 6, target: 24_000_000, current: 21_750_000, gap: 2_250_000, monthsCovered: 5.4375 });
@@ -146,6 +147,18 @@ describe("computeSnapshot", () => {
 
     const noBudget = computeSnapshot(data([bca, darurat], [{ ...makan, monthlyBudget: null }], txns), "2026-12", "2026-12-01");
     expect(noBudget.safeToTrade).toMatchObject({ amount: 0, reason: "belum cukup data" });
+  });
+
+  it("reserves the rest of a usual month when no budgets are set", () => {
+    const dompet = acc({ name: "Dompet", kind: "spending", openingBalance: 22_000_000 });
+    const darurat = acc({ name: "Darurat", kind: "emergency", openingBalance: 30_000_000 });
+    const makan = cat({ name: "Makan", kind: "expense", group: "needs" });
+    const spend = (occurredOn: string, amount: number) => tx({ occurredOn, type: "expense", amount, accountId: dompet.id, categoryId: makan.id });
+    const d = data([dompet, darurat], [makan], [
+      spend("2026-08-01", 4_000_000), spend("2026-09-01", 4_000_000), spend("2026-10-01", 4_000_000), spend("2026-11-05", 1_500_000),
+    ]);
+    // Saldo 22.000.000 − 13.500.000 spent = 8.500.000; reserve 4.000.000 − 1.500.000 = 2.500.000; emergency already full.
+    expect(computeSnapshot(d, "2026-11", "2026-11-27").safeToTrade).toMatchObject({ amount: 6_000_000, freeCash: 8_500_000, remainingBudget: 2_500_000, emergencyGap: 0 });
   });
 
   it("never returns a negative safe amount", () => {

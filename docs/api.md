@@ -34,7 +34,7 @@ curl -H "Authorization: Bearer $TOKEN" https://finance.domainmu.com/api/v1/safe-
 }
 ```
 
-`amount = max(0, freeCash − remainingBudget − emergencyGap)`. Kalau data pengeluaran belum cukup, `amount` = 0 dan `reason` = `"belum cukup data"`.
+`amount = max(0, freeCash − remainingBudget − emergencyGap)`. `remainingBudget` = yang lebih besar antara sisa budget bulan ini dan sisa rata-rata pengeluaran bulanan (rata-rata − pengeluaran bulan ini), jadi uang hidup tetap ditahan walau budget belum diisi. Kalau data pengeluaran belum cukup, `amount` = 0 dan `reason` = `"belum cukup data"`.
 
 ## `GET /api/v1/accounts`
 
