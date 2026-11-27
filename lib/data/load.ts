@@ -9,7 +9,8 @@ export function loadFinanceData(db: Db): FinanceData {
     accounts: db.select().from(accounts).all(),
     categories: db.select().from(categories).all(),
     txns: db.select().from(transactions).all(),
-    settings: db.select().from(settings).where(eq(settings.id, 1)).get() ?? { id: 1, emergencyMonths: 6 },
+    // Explicit columns: the password hash never travels with app data.
+    settings: db.select({ id: settings.id, emergencyMonths: settings.emergencyMonths }).from(settings).where(eq(settings.id, 1)).get() ?? { id: 1, emergencyMonths: 6 },
   };
 }
 

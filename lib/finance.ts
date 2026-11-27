@@ -1,7 +1,7 @@
 import { addMonths, monthOf, monthRange, monthsUntil, sameDayLastMonth } from "./dates";
 import type { Account, Category, Settings, Transaction } from "./db/schema";
 
-export type FinanceData = { accounts: Account[]; categories: Category[]; txns: Transaction[]; settings: Settings };
+export type FinanceData = { accounts: Account[]; categories: Category[]; txns: Transaction[]; settings: Pick<Settings, "id" | "emergencyMonths"> };
 
 export type BudgetStatus = "ok" | "warn" | "over";
 

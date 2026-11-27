@@ -20,7 +20,7 @@ npm test                        # unit test
 
 | Variabel | Cara membuat |
 |---|---|
-| `APP_PASSWORD_HASH` | `npm run hash-password` → ketik password (minimal 12 karakter) → salin baris `APP_PASSWORD_HASH=...` |
+| `APP_PASSWORD_HASH` | **kosongkan.** Password dibuat lewat halaman Buat akun saat pertama dibuka. Isi hanya untuk reset password lupa (`npm run hash-password`). |
 | `SESSION_SECRET` | `openssl rand -hex 32` |
 | `TRADING_API_TOKEN` | `openssl rand -hex 32` (kosongkan kalau belum butuh API trading) |
 | `ANTHROPIC_API_KEY` | opsional, dari console.anthropic.com; kosong = tombol saran AI disembunyikan |
@@ -38,7 +38,7 @@ Contoh memakai subdomain `finance.domainmu.com`.
    git clone https://github.com/LionelSaputra/finance-tracker.git
    cd finance-tracker
    ```
-3. **Buat `.env`:** `cp .env.example .env`, lalu isi seperti tabel di atas. `APP_PASSWORD_HASH` paling mudah dibuat di laptop (`npm run hash-password`) lalu ditempel ke `.env` di VPS.
+3. **Buat `.env`:** `cp .env.example .env`, lalu isi seperti tabel di atas (`APP_PASSWORD_HASH` dibiarkan kosong).
 4. **Folder data** (container berjalan sebagai user id 1000):
    ```bash
    mkdir -p data && sudo chown 1000:1000 data
@@ -54,7 +54,7 @@ Contoh memakai subdomain `finance.domainmu.com`.
    sudo nginx -t && sudo systemctl reload nginx
    sudo certbot --nginx -d finance.domainmu.com
    ```
-7. Buka `https://finance.domainmu.com`, login, lalu tambahkan akun (rekening, e-wallet, tunai) beserta saldonya sekarang.
+7. **Segera** buka `https://finance.domainmu.com`: kamu diarahkan ke halaman **Buat akun**. Buat password (minimal 12 karakter); setelah itu halaman ini tertutup untuk siapa pun. Lalu tambahkan akun (rekening, e-wallet, tunai) beserta saldonya sekarang.
 
 Aplikasi hanya mendengarkan di `127.0.0.1:3100`, jadi dari internet hanya bisa diakses lewat Nginx (HTTPS). Jangan buka port 3100 di firewall.
 
@@ -88,7 +88,7 @@ docker compose up -d
 
 ## Lupa password
 
-Buat hash baru dengan `npm run hash-password`, ganti `APP_PASSWORD_HASH` di `.env` VPS, lalu `docker compose up -d`.
+Buat hash baru dengan `npm run hash-password`, isi `APP_PASSWORD_HASH` di `.env` VPS, lalu `docker compose up -d`. Password dari `.env` selalu menang atas password yang didaftarkan.
 
 ## Saran AI
 
