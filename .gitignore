@@ -43,3 +43,6 @@ next-env.d.ts
 # app data
 /data/
 !.env.example
+
+# local tooling scratch
+/.superpowers/
