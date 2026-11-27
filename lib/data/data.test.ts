@@ -170,3 +170,18 @@ describe("categories and settings", () => {
     expect(loadFinanceData(db).settings.emergencyMonths).toBe(3);
   });
 });
+
+describe("transaction search", () => {
+  it("searches every month by note, category, account or exact amount, and treats % literally", () => {
+    createTransaction(db, { ...expense(), occurredOn: "2026-09-02", note: "Bensin motor" });
+    createTransaction(db, { ...expense(), occurredOn: "2026-11-03", amount: 500_000, categoryId: catId("Hiburan"), note: "Diskon 50% konser" });
+    createTransaction(db, { ...expense(), occurredOn: "2026-11-04", accountId: bank, note: null });
+    const notes = (q: string) => listTransactions(db, { month: "2026-11", q }).map((r) => r.note);
+    expect(notes("bensin")).toEqual(["Bensin motor"]);
+    expect(notes("HIBURAN")).toEqual(["Diskon 50% konser"]);
+    expect(notes("500.000")).toEqual(["Diskon 50% konser"]);
+    expect(notes("50%")).toEqual(["Diskon 50% konser"]);
+    expect(listTransactions(db, { month: "2026-11", q: "bca" })).toHaveLength(1);
+    expect(notes("tidak-ada")).toEqual([]);
+  });
+});

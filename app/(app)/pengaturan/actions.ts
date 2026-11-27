@@ -7,6 +7,9 @@ import { requireSession } from "@/lib/auth/session";
 import { archiveCategory, createCategory, updateCategory } from "@/lib/data/categories";
 import { loadFinanceData, updateSettings } from "@/lib/data/load";
 import { getDb } from "@/lib/db";
+import { createRecurring, deleteRecurring } from "@/lib/data/recurring";
+import { formId } from "@/lib/action";
+import { parseRupiah } from "@/lib/money";
 import type { Category } from "@/lib/db/schema";
 import { DomainError } from "@/lib/validation";
 
@@ -62,4 +65,28 @@ export async function clearAiKeyAction(_prev: ActionState, fd: FormData): Promis
     saveAiSettings(getDb(), { apiKey: null, model: formText(fd, "model") });
     revalidatePath("/", "layout");
   }, "API key dihapus");
+}
+
+export async function createRecurringAction(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  await requireSession();
+  return guarded(() => {
+    const type = formText(fd, "type") === "income" ? "income" : "expense";
+    createRecurring(getDb(), {
+      type,
+      amount: parseRupiah(formText(fd, "amount")) ?? NaN,
+      accountId: formId(fd, "accountId") ?? NaN,
+      categoryId: formId(fd, "categoryId") ?? NaN,
+      note: formText(fd, "note") || null,
+      dayOfMonth: Number(formText(fd, "dayOfMonth")),
+    });
+    revalidatePath("/", "layout");
+  }, "Transaksi rutin ditambahkan");
+}
+
+export async function deleteRecurringAction(id: number, _prev: ActionState, _fd: FormData): Promise<ActionState> {
+  await requireSession();
+  return guarded(() => {
+    deleteRecurring(getDb(), id);
+    revalidatePath("/", "layout");
+  }, "Dihapus");
 }

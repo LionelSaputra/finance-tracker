@@ -7,7 +7,10 @@ import { getDb } from "@/lib/db";
 import type { Category } from "@/lib/db/schema";
 import { GROUP_LABEL } from "@/lib/labels";
 import { AI_MODELS, aiSettingsView } from "@/lib/ai";
-import { aiSettingsAction, archiveCategoryAction, clearAiKeyAction, createCategoryAction, settingsAction, updateCategoryAction } from "./actions";
+import { RecurringForm } from "@/components/RecurringForm";
+import { listRecurring } from "@/lib/data/recurring";
+import { formatIDR } from "@/lib/money";
+import { aiSettingsAction, deleteRecurringAction, archiveCategoryAction, clearAiKeyAction, createCategoryAction, settingsAction, updateCategoryAction } from "./actions";
 
 const MODEL_LABEL: Record<(typeof AI_MODELS)[number], string> = {
   "claude-opus-5-5": "Claude Opus 5.5 — paling pintar (± Rp1.000/saran)",
@@ -31,6 +34,7 @@ export default async function PengaturanPage() {
   const active = data.categories.filter((c) => !c.archived);
   const tokenSet = (process.env.TRADING_API_TOKEN?.length ?? 0) >= 32;
   const ai = aiSettingsView(getDb());
+  const rutin = listRecurring(getDb());
 
   return (
     <div className="mx-auto max-w-2xl space-y-8 py-5">
@@ -79,6 +83,30 @@ export default async function PengaturanPage() {
             <input type="hidden" name="model" value={ai.model} />
           </ActionForm>
         )}
+      </section>
+
+      <section>
+        <h2 className="mb-3 border-b-2 border-ink pb-1 font-narrow text-xl font-bold">Transaksi rutin</h2>
+        {rutin.length > 0 && (
+          <ul className="mb-4 divide-y divide-rule border-b border-rule">
+            {rutin.map((r) => (
+              <li key={r.id} className="flex items-center justify-between gap-3 py-2.5 text-sm">
+                <span className="min-w-0">
+                  <span className="block truncate font-medium">{r.note || r.categoryName}</span>
+                  <span className="block truncate text-xs text-ink-3">
+                    Tiap tgl {r.dayOfMonth} · {r.categoryName} · {r.accountName}
+                  </span>
+                </span>
+                <span className={`shrink-0 font-narrow text-base font-bold ${r.type === "income" ? "text-aman" : ""}`}>
+                  {r.type === "income" ? "+" : "−"}
+                  {formatIDR(r.amount)}
+                </span>
+                <ActionForm action={deleteRecurringAction.bind(null, r.id)} submitLabel="Hapus" danger confirm={`Hapus transaksi rutin ${r.note || r.categoryName}?`} className="shrink-0" />
+              </li>
+            ))}
+          </ul>
+        )}
+        <RecurringForm accounts={data.accounts.filter((a) => !a.archived)} categories={active} />
       </section>
 
       {(["income", "expense"] as const).map((kind) => (

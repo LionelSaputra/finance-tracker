@@ -16,7 +16,25 @@
   --font-narrow: var(--font-archivo-narrow), "Arial Narrow", sans-serif;
 }
 
+/* Night edition of the same calendar for the evening recap: warm dark paper, light ink, colours lifted for contrast. */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-paper: #171612;
+    --color-sheet: #201f1a;
+    --color-ink: #efebe2;
+    --color-ink-2: #c4beb2;
+    --color-ink-3: #948e83;
+    --color-rule: #36342d;
+    --color-merah: #ff6f61;
+    --color-merah-tint: #3a1d1a;
+    --color-aman: #5fcf93;
+    --color-mepet: #f2b84b;
+    --color-marker: #7fa8ff;
+  }
+}
+
 html {
+  color-scheme: light dark;
   background: var(--color-paper);
   color: var(--color-ink);
   caret-color: var(--color-marker);
@@ -31,7 +49,7 @@ body {
 
 ::selection {
   background: var(--color-marker);
-  color: #fff;
+  color: var(--color-paper);
 }
 
 :focus-visible {

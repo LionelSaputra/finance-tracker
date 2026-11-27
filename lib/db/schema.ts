@@ -63,7 +63,20 @@ export const aiInsights = sqliteTable("ai_insights", {
   outputTokens: integer("output_tokens").notNull(),
 });
 
+/** A monthly entry (salary, subscription, instalment) suggested on its day until posted or skipped for that month. */
+export const recurring = sqliteTable("recurring", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  type: text("type", { enum: ["income", "expense"] }).notNull(),
+  amount: integer("amount").notNull(),
+  accountId: integer("account_id").notNull().references(() => accounts.id),
+  categoryId: integer("category_id").notNull().references(() => categories.id),
+  note: text("note"),
+  dayOfMonth: integer("day_of_month").notNull(),
+  handledMonth: text("handled_month"),
+});
+
 export type Account = typeof accounts.$inferSelect;
 export type Category = typeof categories.$inferSelect;
 export type Transaction = typeof transactions.$inferSelect;
 export type Settings = typeof settings.$inferSelect;
+export type Recurring = typeof recurring.$inferSelect;

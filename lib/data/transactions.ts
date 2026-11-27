@@ -1,4 +1,5 @@
-import { and, desc, eq, gte, inArray, lte, sql } from "drizzle-orm";
+import { and, desc, eq, gte, inArray, lte, or, sql } from "drizzle-orm";
+import { parseRupiah } from "../money";
 import { monthRange } from "../dates";
 import type { Db } from "../db";
 import { accounts, categories, transactions, type Transaction } from "../db/schema";
@@ -71,22 +72,36 @@ export function deleteTransaction(db: Db, id: number): void {
   });
 }
 
-export function listTransactions(db: Db, f: { month: string; categoryId?: number; accountId?: number }): TransactionListRow[] {
+/** With `q`, searches every month (note, category, account, or an exact amount) instead of listing one month. */
+export function listTransactions(db: Db, f: { month: string; categoryId?: number; accountId?: number; q?: string }): TransactionListRow[] {
   const { start, end } = monthRange(f.month);
   const accName = new Map(db.select({ id: accounts.id, name: accounts.name }).from(accounts).all().map((a) => [a.id, a.name]));
   const catName = new Map(db.select({ id: categories.id, name: categories.name }).from(categories).all().map((c) => [c.id, c.name]));
+  const q = f.q?.trim().toLowerCase();
+  const idsNamed = (m: Map<number, string>) => [...m].filter(([, n]) => q && n.toLowerCase().includes(q)).map(([id]) => id);
+  const amount = q ? parseRupiah(q) : null;
+  const search = q
+    ? or(
+        sql`lower(${transactions.note}) LIKE ${`%${q.replace(/[%_!]/g, "!$&")}%`} ESCAPE '!'`,
+        inArray(transactions.categoryId, idsNamed(catName)),
+        inArray(transactions.accountId, idsNamed(accName)),
+        amount != null ? eq(transactions.amount, amount) : undefined,
+      )
+    : undefined;
   return db
     .select()
     .from(transactions)
     .where(
       and(
-        gte(transactions.occurredOn, start),
-        lte(transactions.occurredOn, end),
+        q ? undefined : gte(transactions.occurredOn, start),
+        q ? undefined : lte(transactions.occurredOn, end),
+        search,
         f.categoryId ? eq(transactions.categoryId, f.categoryId) : undefined,
         f.accountId ? sql`(${transactions.accountId} = ${f.accountId} OR ${transactions.toAccountId} = ${f.accountId})` : undefined,
       ),
     )
     .orderBy(desc(transactions.occurredOn), desc(transactions.id))
+    .limit(q ? 200 : -1)
     .all()
     .map((t) => ({
       ...t,

@@ -6,14 +6,18 @@ import { Icon } from "@/components/Icon";
 import { MonthNav, pickMonth } from "@/components/MonthNav";
 import { PaceCalendar } from "@/components/PaceCalendar";
 import { SafeToTradeCard } from "@/components/SafeToTradeCard";
+import { SpendingTrend } from "@/components/SpendingTrend";
 import { SuggestionList } from "@/components/SuggestionList";
 import { aiEnabled, latestAiInsight } from "@/lib/ai";
 import { requireSession } from "@/lib/auth/session";
 import { loadFinanceData } from "@/lib/data/load";
 import { recapStatus } from "@/lib/data/transactions";
+import { dueDate, dueRecurring } from "@/lib/data/recurring";
+import { ActionForm } from "@/components/ActionForm";
+import { handleRecurringAction } from "./actions";
 import { addMonths, monthOf, todayJakarta } from "@/lib/dates";
 import { getDb } from "@/lib/db";
-import { computeSnapshot, type PaceStatus } from "@/lib/finance";
+import { computeSnapshot, monthlySpending, type PaceStatus } from "@/lib/finance";
 import { dateLabel, monthLabel, timeWIB } from "@/lib/labels";
 import { formatIDR } from "@/lib/money";
 import { ruleSuggestions } from "@/lib/suggestions";
@@ -56,6 +60,7 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
   const spending = active.find((a) => a.kind === "spending");
   const depositHref = trading ? `/transaksi/baru?tipe=transfer&ke=${trading.id}${spending ? `&dari=${spending.id}` : ""}` : null;
   const recap = recapStatus(db, today);
+  const due = isCurrent ? dueRecurring(db, today) : [];
   const recapDay = recap && todayJakarta(new Date(`${recap.lastAt.replace(" ", "T")}Z`));
   const { pace } = snap;
   const verdict = pace.status ? VERDICT[pace.status] : null;
@@ -125,6 +130,36 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
 
         <PaceCalendar pace={pace} today={today} />
 
+        {due.length > 0 && (
+          <section aria-labelledby="due-h" className="mt-4">
+            <h2 id="due-h" className="font-narrow text-xl font-bold">
+              Jatuh tempo
+            </h2>
+            <ul className="divide-y divide-rule border-y border-rule">
+              {due.map((r) => (
+                <li key={r.id} className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2 py-2.5 text-sm">
+                  <span className="min-w-0">
+                    <span className="block font-medium">
+                      {r.note || r.categoryName}{" "}
+                      <b className={`font-narrow text-base ${r.type === "income" ? "text-aman" : ""}`}>
+                        {r.type === "income" ? "+" : "−"}
+                        {formatIDR(r.amount)}
+                      </b>
+                    </span>
+                    <span className="block text-xs text-ink-3">
+                      Tgl {Number(dueDate(r, current).slice(8))} · {r.accountName}
+                    </span>
+                  </span>
+                  <span className="flex gap-2">
+                    <ActionForm action={handleRecurringAction.bind(null, r.id, "skip")} submitLabel="Lewati" quiet className="flex" />
+                    <ActionForm action={handleRecurringAction.bind(null, r.id, "post")} submitLabel="Catat" className="flex" />
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+
         {isCurrent && (
           <Link href="/transaksi/baru" className="mt-4 flex items-center justify-between gap-3 border-y border-rule py-3 text-sm hover:bg-rule/30">
             <span className="text-ink-2">
@@ -160,6 +195,8 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
         </section>
 
         {aiEnabled(db) && <AiInsightCard month={month} monthName={monthLabel(month)} insight={latestAiInsight(db, month)} />}
+
+        <SpendingTrend months={monthlySpending(data, isCurrent ? current : month, 6)} viewed={month} current={current} />
 
         {topSpending.length > 0 && (
           <section aria-labelledby="top-h">

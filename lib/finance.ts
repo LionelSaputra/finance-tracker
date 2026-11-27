@@ -240,3 +240,15 @@ function monthPace(month: string, today: string, allowance: number | null, sourc
     perDay: daysLeft > 0 ? Math.floor(Math.max(0, remaining) / daysLeft) : null,
   };
 }
+
+/** Non-trading spending per month for the `n` months ending at `endMonth`, oldest first. */
+export function monthlySpending(data: FinanceData, endMonth: string, n = 6): { month: string; total: number }[] {
+  const trading = new Set(data.accounts.filter((a) => a.kind === "trading").map((a) => a.id));
+  const months = Array.from({ length: n }, (_, i) => addMonths(endMonth, i - n + 1));
+  const totals = new Map(months.map((m) => [m, 0]));
+  for (const t of data.txns) {
+    const m = t.occurredOn.slice(0, 7);
+    if (t.type === "expense" && !trading.has(t.accountId) && totals.has(m)) totals.set(m, totals.get(m)! + t.amount);
+  }
+  return months.map((month) => ({ month, total: totals.get(month)! }));
+}

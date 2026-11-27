@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { Account, Category, Transaction } from "./db/schema";
-import { accountBalances, budgetStatus, computeSnapshot, type FinanceData } from "./finance";
+import { accountBalances, budgetStatus, computeSnapshot, monthlySpending, type FinanceData } from "./finance";
 
 let nextId = 1;
 const acc = (p: Partial<Account> & Pick<Account, "name" | "kind">): Account => ({
@@ -210,5 +210,20 @@ describe("month pace", () => {
     expect(pace([], "2026-12", "2026-11-15")).toMatchObject({ status: null, remaining: null });
     const noBudget = computeSnapshot(data([wallet], [{ ...makan, monthlyBudget: null }], []), "2026-11", "2026-11-15").pace;
     expect(noBudget).toMatchObject({ allowance: null, allowanceSource: null, status: null });
+  });
+});
+
+describe("monthlySpending", () => {
+  it("totals non-trading expenses per month, oldest first, with empty months as zero", () => {
+    const wallet = acc({ name: "Dompet", kind: "spending" });
+    const broker = acc({ name: "Broker", kind: "trading" });
+    const makan = cat({ name: "Makan", kind: "expense" });
+    const spend = (occurredOn: string, amount: number, accountId = wallet.id) => tx({ occurredOn, type: "expense", amount, accountId, categoryId: makan.id });
+    const d = data([wallet, broker], [makan], [spend("2026-09-03", 100), spend("2026-11-02", 200), spend("2026-11-20", 50), spend("2026-11-05", 999, broker.id), spend("2026-05-01", 7)]);
+    expect(monthlySpending(d, "2026-11", 3)).toEqual([
+      { month: "2026-09", total: 100 },
+      { month: "2026-10", total: 0 },
+      { month: "2026-11", total: 250 },
+    ]);
   });
 });

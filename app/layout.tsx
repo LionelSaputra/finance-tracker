@@ -10,7 +10,14 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-export const viewport: Viewport = { themeColor: "#fbfaf6", width: "device-width", initialScale: 1 };
+export const viewport: Viewport = {
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#fbfaf6" },
+    { media: "(prefers-color-scheme: dark)", color: "#171612" },
+  ],
+  width: "device-width",
+  initialScale: 1,
+};
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
