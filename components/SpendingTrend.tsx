@@ -14,7 +14,7 @@ export function SpendingTrend({ months, viewed, current }: { months: { month: st
         Pengeluaran 6 bulan
       </h2>
       <ol className="mt-2 grid h-40 grid-cols-6 items-end gap-2 border-b border-ink">
-        {months.map(({ month, total }) => {
+        {months.map(({ month, total }, i) => {
           const isViewed = month === viewed;
           const label = `${monthLong(month)}: ${formatIDR(total)}${month === current ? " (s.d. hari ini)" : ""}`;
           return (
@@ -25,8 +25,8 @@ export function SpendingTrend({ months, viewed, current }: { months: { month: st
                 )}
                 <span
                   aria-hidden
-                  className={`block rounded-t-[4px] transition-colors ${isViewed ? "bg-ink" : "bg-ink-3/45 group-hover:bg-ink-3"}`}
-                  style={{ height: `${Math.max(total ? 3 : 0, (total / max) * 100)}%` }}
+                  className={`anim-grow-y block rounded-t-[4px] transition-colors ${isViewed ? "bg-ink" : "bg-ink-3/45 group-hover:bg-ink-3"}`}
+                  style={{ height: `${Math.max(total ? 3 : 0, (total / max) * 100)}%`, animationDelay: `${i * 40}ms` }}
                 />
               </Link>
             </li>

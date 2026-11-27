@@ -21,7 +21,7 @@ export function PaceCalendar({ pace, today }: { pace: MonthPace; today: string }
         {Array.from({ length: lead }, (_, i) => (
           <li key={`x${i}`} aria-hidden className="border-t border-rule" />
         ))}
-        {pace.days.map((d) => {
+        {pace.days.map((d, i) => {
           const day = Number(d.date.slice(8));
           const isToday = d.date === today;
           const future = d.date > today;
@@ -32,12 +32,18 @@ export function PaceCalendar({ pace, today }: { pace: MonthPace; today: string }
               <span className="relative grid h-7 w-7 place-items-center">
                 {day}
                 {isToday && (
-                  // A hand-drawn marker loop: offset and tilted, numeral left in ink.
-                  <span aria-hidden className="absolute -inset-x-1.5 -inset-y-0.5 -rotate-12 rounded-[50%] border-2 border-marker [border-top-left-radius:45%_60%]" />
+                  // A hand-drawn marker loop, offset and tilted; it draws itself once, like circling the date with a pen.
+                  <svg aria-hidden viewBox="0 0 44 32" className="absolute -inset-x-2 -inset-y-1 h-[calc(100%+8px)] w-[calc(100%+16px)] -rotate-12 overflow-visible">
+                    <path pathLength={100} className="anim-draw" d="M33 4C25 1 9 2 4 11c-4 8 4 17 18 17s21-6 19-14C40 8 34 4 26 3" fill="none" stroke="var(--color-marker)" strokeWidth={2.2} strokeLinecap="round" />
+                  </svg>
                 )}
               </span>
               {size > 0 && (
-                <span aria-hidden className={`absolute bottom-1.5 left-1/2 -translate-x-1/2 rounded-full ${d.ahead ? "bg-merah" : "bg-ink"}`} style={{ width: size, height: size }} />
+                <span
+                  aria-hidden
+                  className={`anim-stamp absolute bottom-1.5 left-1/2 -translate-x-1/2 rounded-full ${d.ahead ? "bg-merah" : "bg-ink"}`}
+                  style={{ width: size, height: size, animationDelay: `${Math.min(i * 12, 360)}ms` }}
+                />
               )}
             </>
           );

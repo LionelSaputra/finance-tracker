@@ -16,7 +16,7 @@ export function BudgetBar({ current, budget, status, todayPct }: { current: numb
       aria-valuemax={100}
       aria-valuetext={`${pct}% dari budget`}
     >
-      <div className={`h-full ${FILL[status ?? "ok"]}`} style={{ width: `${Math.min(pct, 100)}%` }} />
+      <div className={`anim-grow-x h-full ${FILL[status ?? "ok"]}`} style={{ width: `${Math.min(pct, 100)}%` }} />
       {todayPct != null && <span aria-hidden className="absolute -top-1 h-3.5 w-0.5 bg-marker" style={{ left: `${todayPct}%` }} />}
     </div>
   );

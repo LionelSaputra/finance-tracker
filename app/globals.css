@@ -87,3 +87,81 @@ a {
 summary::-webkit-details-marker {
   display: none;
 }
+
+/* Motion: quick feedback on every control, one authored moment (ink dots stamp in, then the marker circles today). */
+:root {
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+html {
+  transition: background-color 250ms var(--ease-out), color 250ms var(--ease-out);
+}
+
+:where(a, button, label, summary, input, select) {
+  transition-property: color, background-color, border-color, outline-color, transform, opacity;
+  transition-duration: 150ms;
+  transition-timing-function: var(--ease-out);
+}
+
+:where(button:not(:disabled), label:has(> input[type="radio"])):active {
+  transform: scale(0.97);
+  transition-duration: 80ms;
+}
+
+details > summary svg {
+  transition: rotate 200ms var(--ease-out);
+}
+details[open] > summary svg {
+  rotate: 90deg;
+}
+details[open] > :not(summary) {
+  animation: fade-up 220ms var(--ease-out) both;
+}
+
+[aria-live] > * {
+  animation: fade-up 220ms var(--ease-out) both;
+}
+
+.anim-grow-x {
+  transform-origin: left center;
+  animation: grow-x 600ms var(--ease-out) both;
+}
+.anim-grow-y {
+  transform-origin: center bottom;
+  animation: grow-y 600ms var(--ease-out) both;
+}
+.anim-stamp {
+  animation: stamp 320ms var(--ease-out) both;
+}
+.anim-draw {
+  stroke-dasharray: 100;
+  stroke-dashoffset: 100;
+  animation: draw 650ms var(--ease-out) 450ms forwards;
+}
+
+@keyframes fade-up {
+  from { opacity: 0; translate: 0 4px; }
+}
+@keyframes grow-x {
+  from { scale: 0 1; }
+}
+@keyframes grow-y {
+  from { scale: 1 0; }
+}
+@keyframes stamp {
+  from { opacity: 0; scale: 0.4; }
+}
+@keyframes draw {
+  to { stroke-dashoffset: 0; }
+}
+
+/* Reduced motion: no movement, but state changes still read through opacity and colour. */
+@media (prefers-reduced-motion: reduce) {
+  :where(button:not(:disabled), label:has(> input[type="radio"])):active { transform: none; }
+  .anim-grow-x, .anim-grow-y, .anim-stamp { animation-name: fade-in; }
+  .anim-draw { animation: none; stroke-dashoffset: 0; }
+  details[open] > :not(summary), [aria-live] > * { animation-name: fade-in; }
+}
+@keyframes fade-in {
+  from { opacity: 0; }
+}

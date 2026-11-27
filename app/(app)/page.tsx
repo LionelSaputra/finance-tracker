@@ -234,7 +234,7 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
                     </span>
                   </div>
                   <div className="mt-2 h-1.5 bg-rule">
-                    <div className="h-full bg-aman" style={{ width: `${Math.min(Math.max(g.progressPct, 0), 100)}%` }} />
+                    <div className="anim-grow-x h-full bg-aman" style={{ width: `${Math.min(Math.max(g.progressPct, 0), 100)}%` }} />
                   </div>
                   {g.neededPerMonth ? (
                     <p className="mt-1 text-xs text-ink-3">
