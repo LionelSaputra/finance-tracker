@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { buildAiSummary, latestAiInsight, requestAiInsight, type AiClient } from "./ai";
+import { aiSettingsView, buildAiSummary, getAiConfig, latestAiInsight, requestAiInsight, saveAiSettings, type AiClient } from "./ai";
 import { adjustBalance, createAccount } from "./data/accounts";
 import { loadFinanceData } from "./data/load";
 import { createTransaction } from "./data/transactions";
@@ -36,6 +36,29 @@ beforeEach(() => {
   adjustBalance(db, bca, 4_800_000);
 });
 afterEach(() => vi.unstubAllEnvs());
+
+describe("AI settings", () => {
+  it("prefers settings saved in the app over .env, and never returns the key in the public view", () => {
+    vi.stubEnv("ANTHROPIC_API_KEY", "");
+    vi.stubEnv("AI_MODEL", "");
+    expect(getAiConfig(db)).toBeNull();
+    saveAiSettings(db, { apiKey: "sk-ant-api03-abcdefghijklmnop1234", model: "claude-haiku-5-5" });
+    expect(getAiConfig(db)).toEqual({ apiKey: "sk-ant-api03-abcdefghijklmnop1234", model: "claude-haiku-5-5" });
+    expect(aiSettingsView(db)).toEqual({ keySource: "app", keyHint: "1234", model: "claude-haiku-5-5" });
+    // Empty key field = keep the saved key; model still changes.
+    saveAiSettings(db, { apiKey: "", model: "claude-opus-5-5" });
+    expect(getAiConfig(db)?.apiKey).toBe("sk-ant-api03-abcdefghijklmnop1234");
+    saveAiSettings(db, { apiKey: null, model: "claude-opus-5-5" });
+    vi.stubEnv("ANTHROPIC_API_KEY", "sk-ant-from-env-0000000000009999");
+    expect(getAiConfig(db)).toEqual({ apiKey: "sk-ant-from-env-0000000000009999", model: "claude-opus-5-5" });
+    expect(aiSettingsView(db).keySource).toBe("env");
+  });
+
+  it("rejects keys and models that cannot work", () => {
+    expect(() => saveAiSettings(db, { apiKey: "bukan-key", model: "claude-opus-5-5" })).toThrow("API key Anthropic diawali sk-ant-");
+    expect(() => saveAiSettings(db, { apiKey: "", model: "gpt-5" })).toThrow();
+  });
+});
 
 describe("buildAiSummary", () => {
   it("sends numbers and category names, never notes or account names", () => {

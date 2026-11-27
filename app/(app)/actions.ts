@@ -9,7 +9,7 @@ import { getDb } from "@/lib/db";
 
 export async function askAi(month: string, _prev: ActionState, _fd: FormData): Promise<ActionState> {
   await requireSession();
-  if (!aiEnabled()) return { error: "Saran AI belum diaktifkan (ANTHROPIC_API_KEY kosong)." };
+  if (!aiEnabled(getDb())) return { error: "Saran AI belum diaktifkan. Isi API key di Pengaturan." };
   if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(month)) return { error: "Bulan tidak valid" };
   const res = await requestAiInsight(getDb(), month, todayJakarta());
   if (!res.ok) return { error: res.error };

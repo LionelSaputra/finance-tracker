@@ -5,7 +5,14 @@ import { loadFinanceData } from "@/lib/data/load";
 import { getDb } from "@/lib/db";
 import type { Category } from "@/lib/db/schema";
 import { GROUP_LABEL } from "@/lib/labels";
-import { archiveCategoryAction, createCategoryAction, settingsAction, updateCategoryAction } from "./actions";
+import { AI_MODELS, aiSettingsView } from "@/lib/ai";
+import { aiSettingsAction, archiveCategoryAction, clearAiKeyAction, createCategoryAction, settingsAction, updateCategoryAction } from "./actions";
+
+const MODEL_LABEL: Record<(typeof AI_MODELS)[number], string> = {
+  "claude-opus-5-5": "Claude Opus 5.5 — paling pintar (± Rp1.000/saran)",
+  "claude-sonnet-5-5": "Claude Sonnet 5.5 — seimbang (± Rp500/saran)",
+  "claude-haiku-5-5": "Claude Haiku 5.5 — paling murah (± Rp25/saran)",
+};
 
 function GroupSelect({ value }: { value?: Category["group"] }) {
   return (
@@ -22,6 +29,7 @@ export default async function PengaturanPage() {
   const data = loadFinanceData(getDb());
   const active = data.categories.filter((c) => !c.archived);
   const tokenSet = (process.env.TRADING_API_TOKEN?.length ?? 0) >= 32;
+  const ai = aiSettingsView(getDb());
 
   return (
     <div className="space-y-6">
@@ -35,6 +43,41 @@ export default async function PengaturanPage() {
           </label>
           <input id="emergencyMonths" name="emergencyMonths" type="number" min={1} max={24} defaultValue={data.settings.emergencyMonths} className={`${inputClass} w-24`} />
         </ActionForm>
+      </section>
+
+      <section className="space-y-3 rounded-xl bg-white p-3 shadow-sm">
+        <h2 className="font-medium">Saran AI (Claude)</h2>
+        <p className="text-sm">
+          API key:{" "}
+          <strong>
+            {ai.keySource ? `terpasang (…${ai.keyHint})${ai.keySource === "env" ? " dari file .env" : ""}` : "belum"}
+          </strong>
+        </p>
+        <ActionForm action={aiSettingsAction} submitLabel="Simpan">
+          <input
+            name="apiKey"
+            type="password"
+            autoComplete="off"
+            placeholder={ai.keySource ? "Kosongkan untuk tetap memakai key sekarang" : "sk-ant-..."}
+            className={inputClass}
+            aria-label="API key Anthropic"
+          />
+          <select name="model" defaultValue={ai.model} className={inputClass} aria-label="Model AI">
+            {AI_MODELS.map((m) => (
+              <option key={m} value={m}>
+                {MODEL_LABEL[m]}
+              </option>
+            ))}
+          </select>
+          <p className="text-xs text-slate-500">
+            Buat key di console.anthropic.com (butuh saldo prabayar). Key disimpan di database aplikasi ini dan tidak pernah ditampilkan lagi.
+          </p>
+        </ActionForm>
+        {ai.keySource === "app" && (
+          <ActionForm action={clearAiKeyAction} submitLabel="Hapus API key" danger confirm="Hapus API key? Tombol saran AI akan hilang.">
+            <input type="hidden" name="model" value={ai.model} />
+          </ActionForm>
+        )}
       </section>
 
       {(["income", "expense"] as const).map((kind) => (

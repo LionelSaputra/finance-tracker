@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { formText, guarded, type ActionState } from "@/lib/action";
+import { saveAiSettings } from "@/lib/ai";
 import { requireSession } from "@/lib/auth/session";
 import { archiveCategory, createCategory, updateCategory } from "@/lib/data/categories";
 import { loadFinanceData, updateSettings } from "@/lib/data/load";
@@ -44,4 +45,21 @@ export async function settingsAction(_prev: ActionState, fd: FormData): Promise<
     updateSettings(getDb(), { emergencyMonths: Number(formText(fd, "emergencyMonths")) });
     revalidatePath("/pengaturan");
   });
+}
+
+export async function aiSettingsAction(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  await requireSession();
+  return guarded(() => {
+    // Empty key field keeps the saved key.
+    saveAiSettings(getDb(), { apiKey: formText(fd, "apiKey"), model: formText(fd, "model") });
+    revalidatePath("/", "layout");
+  }, "Pengaturan AI tersimpan");
+}
+
+export async function clearAiKeyAction(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  await requireSession();
+  return guarded(() => {
+    saveAiSettings(getDb(), { apiKey: null, model: formText(fd, "model") });
+    revalidatePath("/", "layout");
+  }, "API key dihapus");
 }

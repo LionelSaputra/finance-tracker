@@ -23,7 +23,7 @@ npm test                        # unit test
 | `APP_PASSWORD_HASH` | **kosongkan.** Password dibuat lewat halaman Buat akun saat pertama dibuka. Isi hanya untuk reset password lupa (`npm run hash-password`). |
 | `SESSION_SECRET` | `openssl rand -hex 32` |
 | `TRADING_API_TOKEN` | `openssl rand -hex 32` (kosongkan kalau belum butuh API trading) |
-| `ANTHROPIC_API_KEY` | opsional, dari console.anthropic.com; kosong = tombol saran AI disembunyikan |
+| `ANTHROPIC_API_KEY` | opsional; lebih mudah diisi di menu ⚙ Pengaturan → Saran AI. Isian di aplikasi menang atas .env |
 | `AI_MODEL` | default `claude-opus-5-5`; `claude-haiku-5-5` jauh lebih murah |
 
 Password tidak pernah disimpan, hanya hash-nya. Ganti `SESSION_SECRET` = semua perangkat otomatis logout.
@@ -92,4 +92,4 @@ Buat hash baru dengan `npm run hash-password`, isi `APP_PASSWORD_HASH` di `.env`
 
 ## Saran AI
 
-Tombol "Minta saran AI" di Beranda muncul kalau `ANTHROPIC_API_KEY` diisi. Yang dikirim ke Claude hanya ringkasan angka bulan itu (total per kategori, budget, dana darurat, target tabungan beserta namanya, dana aman trading) — **tanpa catatan transaksi dan tanpa nama rekening harian/dana darurat/trading**. Nama target tabungan ikut terkirim, jadi jangan beri nama yang sensitif. Setiap klik = satu permintaan berbayar (sekitar Rp1.000 dengan Opus). Saran AI bukan nasihat keuangan profesional.
+Isi API key Anthropic (dan pilih model) di menu ⚙ Pengaturan → **Saran AI**; tombol "Minta saran AI" lalu muncul di Beranda. Key disimpan di database aplikasi (ikut ter-backup) dan hanya 4 karakter terakhirnya yang ditampilkan. Yang dikirim ke Claude hanya ringkasan angka bulan itu (total per kategori, budget, dana darurat, target tabungan beserta namanya, dana aman trading) — **tanpa catatan transaksi dan tanpa nama rekening harian/dana darurat/trading**. Nama target tabungan ikut terkirim, jadi jangan beri nama yang sensitif. Setiap klik = satu permintaan berbayar (sekitar Rp1.000 dengan Opus). Saran AI bukan nasihat keuangan profesional.

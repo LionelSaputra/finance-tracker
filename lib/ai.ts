@@ -3,9 +3,10 @@ import { desc, eq } from "drizzle-orm";
 import { z } from "zod";
 import { loadFinanceData } from "./data/load";
 import type { Db } from "./db";
-import { aiInsights } from "./db/schema";
+import { aiInsights, settings } from "./db/schema";
 import { computeSnapshot, type FinanceSnapshot } from "./finance";
 import { ruleSuggestions, type Suggestion } from "./suggestions";
+import { DomainError } from "./validation";
 
 export const aiResultSchema = z.object({
   ringkasan: z.string().min(1),
@@ -45,8 +46,40 @@ Jangan merekomendasikan saham, kripto, reksa dana, atau aset tertentu, dan janga
 
 Tulis dalam Bahasa Indonesia yang singkat dan ramah. "ringkasan" berisi 1-2 kalimat gambaran umum bulan ini.`;
 
-export const aiEnabled = () => !!process.env.ANTHROPIC_API_KEY;
-const aiModel = () => process.env.AI_MODEL || "claude-opus-5-5";
+export const AI_MODELS = ["claude-opus-5-5", "claude-sonnet-5-5", "claude-haiku-5-5"] as const;
+const aiSettingsSchema = z.object({ apiKey: z.string().trim().nullable(), model: z.enum(AI_MODELS) });
+
+const storedAi = (db: Db) =>
+  db.select({ key: settings.aiApiKey, model: settings.aiModel }).from(settings).where(eq(settings.id, 1)).get() ?? { key: null, model: null };
+// Settings saved in the app win over .env.
+const resolveModel = (db: Db) => storedAi(db).model || process.env.AI_MODEL || "claude-opus-5-5";
+const resolveKey = (db: Db) => {
+  const app = storedAi(db).key;
+  if (app) return { key: app, source: "app" as const };
+  const env = process.env.ANTHROPIC_API_KEY;
+  return env ? { key: env, source: "env" as const } : null;
+};
+
+export function getAiConfig(db: Db): { apiKey: string; model: string } | null {
+  const k = resolveKey(db);
+  return k ? { apiKey: k.key, model: resolveModel(db) } : null;
+}
+
+export const aiEnabled = (db: Db) => getAiConfig(db) != null;
+
+/** What the settings page may show: never the key itself, only its last 4 characters. */
+export function aiSettingsView(db: Db) {
+  const k = resolveKey(db);
+  return { keySource: k?.source ?? null, keyHint: k ? k.key.slice(-4) : null, model: resolveModel(db) };
+}
+
+/** apiKey: "" keeps the saved key, null removes it, otherwise replaces it. */
+export function saveAiSettings(db: Db, input: { apiKey: string | null; model: string }): void {
+  const { apiKey, model } = aiSettingsSchema.parse(input);
+  if (apiKey && !/^sk-ant-[\w-]{10,}$/.test(apiKey)) throw new DomainError("API key Anthropic diawali sk-ant-");
+  const set = apiKey === "" ? { aiModel: model } : { aiModel: model, aiApiKey: apiKey };
+  db.update(settings).set(set).where(eq(settings.id, 1)).run();
+}
 // Server-side refusal fallback exists for Opus/Sonnet; Haiku has none.
 const supportsFallback = (model: string) => /^claude-(opus|sonnet|fable)/.test(model);
 
@@ -79,12 +112,17 @@ export async function requestAiInsight(
   db: Db,
   month: string,
   today: string,
-  // Below Nginx's proxy_read_timeout (180s), so a slow answer fails here instead of a 504 after we already paid for it.
-  client: AiClient = new Anthropic({ timeout: 150_000, maxRetries: 1 }),
+  client?: AiClient,
 ): Promise<{ ok: true; insight: AiInsight } | { ok: false; error: string }> {
+  if (!client) {
+    const cfg = getAiConfig(db);
+    if (!cfg) return { ok: false, error: "Saran AI belum diaktifkan. Isi API key di Pengaturan." };
+    // Below Nginx's proxy_read_timeout (180s), so a slow answer fails here instead of a 504 after we already paid for it.
+    client = new Anthropic({ apiKey: cfg.apiKey, timeout: 150_000, maxRetries: 1 });
+  }
   const snap = computeSnapshot(loadFinanceData(db), month, today);
   const summary = buildAiSummary(snap, ruleSuggestions(snap));
-  const model = aiModel();
+  const model = resolveModel(db);
 
   let res: Anthropic.Beta.Messages.BetaMessage;
   try {

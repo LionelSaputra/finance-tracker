@@ -15,6 +15,13 @@
       "when": 1795782770688,
       "tag": "0001_past_mister_fear",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1795783296854,
+      "tag": "0002_spooky_warbound",
+      "breakpoints": true
     }
   ]
 }

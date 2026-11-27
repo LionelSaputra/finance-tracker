@@ -48,6 +48,8 @@ export const settings = sqliteTable("settings", {
   id: integer("id").primaryKey(),
   emergencyMonths: integer("emergency_months").notNull().default(6),
   passwordHash: text("password_hash"),
+  aiApiKey: text("ai_api_key"),
+  aiModel: text("ai_model"),
 });
 
 export const aiInsights = sqliteTable("ai_insights", {

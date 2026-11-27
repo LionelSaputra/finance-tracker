@@ -76,7 +76,7 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
         <SuggestionList items={suggestions} />
       </section>
 
-      {aiEnabled() && <AiInsightCard month={month} insight={latestAiInsight(getDb(), month)} />}
+      {aiEnabled(getDb()) && <AiInsightCard month={month} insight={latestAiInsight(getDb(), month)} />}
 
       <section className="space-y-2">
         <h2 className="font-medium">Budget {isCurrent ? "bulan ini" : monthLabel(month)}</h2>
