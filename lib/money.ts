@@ -11,6 +11,16 @@ export function parseRupiah(input: string): number | null {
   return n >= 1 && n <= MAX_AMOUNT ? n : null;
 }
 
+/** Like parseRupiah, but for balances: allows 0 and a leading minus (e.g. a credit card). */
+export function parseBalance(input: string): number | null {
+  const s = input.trim().replace(/^rp\.?\s*/i, "");
+  const negative = s.startsWith("-");
+  const body = negative ? s.slice(1) : s;
+  if (/^0+(,0{1,2})?$/.test(body.replace(/\s/g, ""))) return 0;
+  const n = parseRupiah(body);
+  return n == null ? null : negative ? -n : n;
+}
+
 export function formatIDR(amount: number): string {
   return idr.format(amount);
 }
