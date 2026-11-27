@@ -144,3 +144,22 @@
  GET / 200 in 17ms (next.js: 1.2ms, application-code: 16ms)
  GET /manifest.webmanifest 200 in 3ms (next.js: 0.6ms, application-code: 3ms)
  GET / 200 in 30ms (next.js: 0.5ms, application-code: 29ms)
+✓ Compiled in 52ms
+✓ Compiled in 119ms
+ GET /login 200 in 15ms (next.js: 1.2ms, application-code: 14ms)
+✓ Compiled in 1063ms
+ GET /manifest.webmanifest 200 in 27ms (next.js: 0.6ms, application-code: 27ms)
+ GET / 200 in 117ms (next.js: 65ms, application-code: 51ms)
+ GET /login 200 in 25ms (next.js: 2ms, application-code: 23ms)
+ GET / 200 in 16ms (next.js: 1.0ms, application-code: 15ms)
+ GET /manifest.webmanifest 200 in 3ms (next.js: 0.6ms, application-code: 3ms)
+ GET / 200 in 34ms (next.js: 1.0ms, application-code: 33ms)
+  Reload env: .env.local
+ GET /login 200 in 125ms (next.js: 56ms, application-code: 69ms)
+ GET / 200 in 97ms (next.js: 47ms, application-code: 50ms)
+ GET /manifest.webmanifest 200 in 25ms (next.js: 19ms, application-code: 7ms)
+ GET / 200 in 75ms (next.js: 0.7ms, application-code: 75ms)
+AI request failed: 401
+ POST / 200 in 410ms (next.js: 0.7ms, application-code: 410ms)
+  └─ ƒ askAi("2026-11", undefined, {}) in 404ms app/(app)/actions.ts
+  Reload env: .env.local

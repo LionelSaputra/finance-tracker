@@ -1,7 +1,9 @@
 import Link from "next/link";
+import { AiInsightCard } from "@/components/AiInsightCard";
 import { BudgetBars } from "@/components/BudgetBars";
 import { SafeToTradeCard } from "@/components/SafeToTradeCard";
 import { SuggestionList } from "@/components/SuggestionList";
+import { aiEnabled, latestAiInsight } from "@/lib/ai";
 import { requireSession } from "@/lib/auth/session";
 import { loadFinanceData } from "@/lib/data/load";
 import { addMonths, monthOf, todayJakarta } from "@/lib/dates";
@@ -73,6 +75,8 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
         <h2 className="font-medium">Saran</h2>
         <SuggestionList items={suggestions} />
       </section>
+
+      {aiEnabled() && <AiInsightCard month={month} insight={latestAiInsight(getDb(), month)} />}
 
       <section className="space-y-2">
         <h2 className="font-medium">Budget {isCurrent ? "bulan ini" : monthLabel(month)}</h2>
