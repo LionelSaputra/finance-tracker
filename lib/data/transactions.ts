@@ -1,4 +1,4 @@
-import { and, desc, eq, gte, lte, sql } from "drizzle-orm";
+import { and, desc, eq, gte, inArray, lte, sql } from "drizzle-orm";
 import { monthRange } from "../dates";
 import type { Db } from "../db";
 import { accounts, categories, transactions, type Transaction } from "../db/schema";
@@ -47,16 +47,27 @@ export function createTransaction(db: Db, input: TxnInput, source: "manual" | "t
   });
 }
 
+/** Archived accounts hold exactly 0; changing their old rows would leave a balance no total shows. */
+function assertEditable(db: Db, id: number) {
+  const t = db.select().from(transactions).where(eq(transactions.id, id)).get();
+  if (!t) throw new DomainError("Transaksi tidak ditemukan");
+  const ids = [t.accountId, t.toAccountId].filter((x): x is number => x != null);
+  if (db.select().from(accounts).where(inArray(accounts.id, ids)).all().some((a) => a.archived)) throw new DomainError("Akun sudah diarsip");
+}
+
 export function updateTransaction(db: Db, id: number, input: TxnInput): void {
   db.transaction((tx) => {
+    assertEditable(tx as unknown as Db, id);
     const { externalId: _keep, ...values } = validated(tx as unknown as Db, input);
-    const res = tx.update(transactions).set({ ...values, updatedAt: sql`CURRENT_TIMESTAMP` }).where(eq(transactions.id, id)).run();
-    if (res.changes === 0) throw new DomainError("Transaksi tidak ditemukan");
+    tx.update(transactions).set({ ...values, updatedAt: sql`CURRENT_TIMESTAMP` }).where(eq(transactions.id, id)).run();
   });
 }
 
 export function deleteTransaction(db: Db, id: number): void {
-  db.delete(transactions).where(eq(transactions.id, id)).run();
+  db.transaction((tx) => {
+    assertEditable(tx as unknown as Db, id);
+    tx.delete(transactions).where(eq(transactions.id, id)).run();
+  });
 }
 
 export function listTransactions(db: Db, f: { month: string; categoryId?: number; accountId?: number }): TransactionListRow[] {

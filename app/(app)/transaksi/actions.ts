@@ -33,7 +33,9 @@ export async function saveTransaction(_prev: ActionState, fd: FormData): Promise
 
 export async function removeTransaction(id: number, _prev: ActionState, _fd: FormData): Promise<ActionState> {
   await requireSession();
-  deleteTransaction(getDb(), id);
-  revalidatePath("/", "layout");
-  redirect("/transaksi");
+  return guarded(() => {
+    deleteTransaction(getDb(), id);
+    revalidatePath("/", "layout");
+    redirect("/transaksi");
+  });
 }

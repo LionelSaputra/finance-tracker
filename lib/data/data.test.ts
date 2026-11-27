@@ -74,6 +74,19 @@ describe("transactions", () => {
     expect(listTransactions(db, { month: "2026-11" })).toHaveLength(0);
   });
 
+  it("refuses to edit or delete transactions of an archived account", () => {
+    const lama = createAccount(db, { name: "Lama", kind: "spending", openingBalance: 50_000 });
+    const spent = createTransaction(db, { ...expense(), accountId: lama, amount: 50_000 });
+    const moved = createTransaction(db, { occurredOn: "2026-11-21", type: "transfer", amount: 10_000, accountId: bank, toAccountId: lama });
+    createTransaction(db, { ...expense(), accountId: lama, amount: 10_000 });
+    archiveAccount(db, lama);
+    expect(() => updateTransaction(db, spent.id, { ...expense(), accountId: bank })).toThrow("Akun sudah diarsip");
+    expect(() => deleteTransaction(db, spent.id)).toThrow("Akun sudah diarsip");
+    expect(() => deleteTransaction(db, moved.id)).toThrow("Akun sudah diarsip");
+    expect(balanceOf(lama)).toBe(0);
+    expect(() => deleteTransaction(db, 999)).toThrow("Transaksi tidak ditemukan");
+  });
+
   it("remembers the last used account", () => {
     expect(lastUsedAccountId(db)).toBeNull();
     createTransaction(db, { ...expense(), accountId: bank });
