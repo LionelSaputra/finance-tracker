@@ -95,6 +95,16 @@ export function listTransactions(db: Db, f: { month: string; categoryId?: number
     }));
 }
 
+/** The account of the user's own latest entry; trading-app rows and archived accounts never become the default. */
 export function lastUsedAccountId(db: Db): number | null {
-  return db.select({ id: transactions.accountId }).from(transactions).orderBy(desc(transactions.id)).limit(1).get()?.id ?? null;
+  return (
+    db
+      .select({ id: transactions.accountId })
+      .from(transactions)
+      .innerJoin(accounts, eq(accounts.id, transactions.accountId))
+      .where(and(eq(transactions.source, "manual"), eq(accounts.archived, false)))
+      .orderBy(desc(transactions.id))
+      .limit(1)
+      .get()?.id ?? null
+  );
 }

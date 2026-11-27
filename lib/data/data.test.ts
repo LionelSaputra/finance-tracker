@@ -87,9 +87,16 @@ describe("transactions", () => {
     expect(() => deleteTransaction(db, 999)).toThrow("Transaksi tidak ditemukan");
   });
 
-  it("remembers the last used account", () => {
+  it("remembers the last account the user picked, not the trading app's", () => {
     expect(lastUsedAccountId(db)).toBeNull();
     createTransaction(db, { ...expense(), accountId: bank });
+    expect(lastUsedAccountId(db)).toBe(bank);
+    const broker = createAccount(db, { name: "Broker", kind: "trading", openingBalance: 0 });
+    createTransaction(db, { occurredOn: "2026-11-22", type: "income", amount: 5_000, accountId: broker, categoryId: catId("Profit Trading"), externalId: "p1" }, "trading");
+    expect(lastUsedAccountId(db)).toBe(bank);
+    const lama = createAccount(db, { name: "Lama", kind: "spending", openingBalance: 25_000 });
+    createTransaction(db, { ...expense(), accountId: lama });
+    archiveAccount(db, lama);
     expect(lastUsedAccountId(db)).toBe(bank);
   });
 });
