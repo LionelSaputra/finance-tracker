@@ -46,10 +46,9 @@ describe("login rate limit", () => {
     expect(isLoginBlocked("1.1.1.1", 1000)).toBe(false);
   });
 
-  it("blocks everyone after 20 failures in an hour", () => {
-    for (let i = 0; i < 20; i++) recordLoginFailure(`10.0.0.${i}`, 0);
-    expect(isLoginBlocked("9.9.9.9", 1000)).toBe(true);
-    expect(isLoginBlocked("9.9.9.9", 60 * 60e3 + 1)).toBe(false);
+  it("never lets failures from other IPs lock the owner out", () => {
+    for (let i = 0; i < 200; i++) recordLoginFailure(`10.0.${Math.floor(i / 5)}.${i % 5}`, 0);
+    expect(isLoginBlocked("9.9.9.9", 1000)).toBe(false);
   });
 
   it("takes the client IP from the right-most X-Forwarded-For entry", () => {

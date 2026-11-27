@@ -6,10 +6,9 @@ import { loadFinanceData } from "@/lib/data/load";
 import { listTransactions } from "@/lib/data/transactions";
 import { monthOf, todayJakarta } from "@/lib/dates";
 import { getDb } from "@/lib/db";
+import { shortMonthLabel, weekdayLabel } from "@/lib/labels";
 import { formatIDR } from "@/lib/money";
 
-const monthShort = (d: string) => new Intl.DateTimeFormat("id-ID", { month: "short", year: "numeric", timeZone: "UTC" }).format(new Date(`${d}T00:00:00Z`));
-const weekday = (d: string) => new Intl.DateTimeFormat("id-ID", { weekday: "long", timeZone: "UTC" }).format(new Date(`${d}T00:00:00Z`));
 const one = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v);
 
 export default async function TransaksiPage({ searchParams }: PageProps<"/transaksi">) {
@@ -82,7 +81,7 @@ export default async function TransaksiPage({ searchParams }: PageProps<"/transa
         <section key={day} id={`t-${day}`} className="grid scroll-mt-4 grid-cols-[3.25rem_1fr] gap-x-3 border-t-2 border-ink pt-2">
           <h2 className="leading-none">
             <span className="block font-narrow text-4xl font-bold">{Number(day.slice(8))}</span>
-            <span className="text-xs capitalize text-ink-3">{q ? monthShort(day) : weekday(day)}</span>
+            <span className="text-xs capitalize text-ink-3">{q ? shortMonthLabel(day.slice(0, 7), true) : weekdayLabel(day)}</span>
           </h2>
           <ul className="divide-y divide-rule">
             {list.map((r) => (

@@ -1,15 +1,13 @@
 // shortcut: failures live in process memory, so a restart resets them and several instances would not share them;
 // fine for one container serving one user — move to SQLite if the app ever runs more than one instance.
+// No global cap on purpose: one would let any stranger lock the owner out with 20 wrong guesses an hour.
+// Guessing stays impractical through the per-IP limit, the 12-character minimum and scrypt's cost per try.
 const IP_WINDOW_MS = 15 * 60e3;
 const IP_MAX = 5;
-const GLOBAL_WINDOW_MS = 60 * 60e3;
-const GLOBAL_MAX = 20;
 
 const byIp = new Map<string, number[]>();
-let global: number[] = [];
 
 function prune(now: number) {
-  global = global.filter((t) => now - t < GLOBAL_WINDOW_MS);
   for (const [ip, times] of byIp) {
     const fresh = times.filter((t) => now - t < IP_WINDOW_MS);
     if (fresh.length) byIp.set(ip, fresh);
@@ -19,12 +17,11 @@ function prune(now: number) {
 
 export function isLoginBlocked(ip: string, now: number = Date.now()): boolean {
   prune(now);
-  return global.length >= GLOBAL_MAX || (byIp.get(ip)?.length ?? 0) >= IP_MAX;
+  return (byIp.get(ip)?.length ?? 0) >= IP_MAX;
 }
 
 export function recordLoginFailure(ip: string, now: number = Date.now()): void {
   prune(now);
-  global.push(now);
   byIp.set(ip, [...(byIp.get(ip) ?? []), now]);
 }
 
@@ -34,7 +31,6 @@ export function clearLoginFailures(ip: string): void {
 
 export function _resetLoginFailures(): void {
   byIp.clear();
-  global = [];
 }
 
 /** The reverse proxy appends the real client IP last; earlier entries can be forged by the client. */

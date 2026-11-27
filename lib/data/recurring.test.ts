@@ -27,8 +27,8 @@ describe("recurring entries", () => {
     const id = createRecurring(db, { type: "expense", amount: 186_000, accountId: bank, categoryId: catId("Langganan"), note: "Netflix", dayOfMonth: 25 });
     expect(dueRecurring(db, "2026-11-24")).toHaveLength(0);
     expect(dueRecurring(db, "2026-11-27").map((r) => r.note)).toEqual(["Netflix"]);
-    handleRecurring(db, id, "2026-11-27", "post");
-    handleRecurring(db, id, "2026-11-27", "post");
+    handleRecurring(db, id, "2026-11", "2026-11-27", "post");
+    handleRecurring(db, id, "2026-11", "2026-11-27", "post");
     const txns = loadFinanceData(db).txns;
     expect(txns).toHaveLength(1);
     expect(txns[0]).toMatchObject({ occurredOn: "2026-11-25", amount: 186_000, note: "Netflix" });
@@ -38,9 +38,23 @@ describe("recurring entries", () => {
 
   it("can be skipped for a month without recording anything", () => {
     const id = createRecurring(db, { type: "income", amount: 8_000_000, accountId: bank, categoryId: catId("Gaji"), note: null, dayOfMonth: 1 });
-    handleRecurring(db, id, "2026-11-05", "skip");
+    handleRecurring(db, id, "2026-11", "2026-11-05", "skip");
     expect(dueRecurring(db, "2026-11-05")).toHaveLength(0);
     expect(loadFinanceData(db).txns).toHaveLength(0);
+  });
+
+  it("still shows last month's entry when the app was not opened in time, then this month's", () => {
+    const id = createRecurring(db, { type: "income", amount: 8_000_000, accountId: bank, categoryId: catId("Gaji"), note: "Gaji", dayOfMonth: 25 });
+    handleRecurring(db, id, "2026-09", "2026-09-26", "post");
+    // October was never opened; on 2 November October's salary is still waiting.
+    expect(dueRecurring(db, "2026-11-02").map((r) => r.pendingMonth)).toEqual(["2026-10"]);
+    handleRecurring(db, id, "2026-10", "2026-11-02", "post");
+    expect(loadFinanceData(db).txns.map((t) => t.occurredOn)).toEqual(["2026-09-25", "2026-10-25"]);
+    expect(dueRecurring(db, "2026-11-02")).toHaveLength(0);
+    expect(dueRecurring(db, "2026-11-25").map((r) => r.pendingMonth)).toEqual(["2026-11"]);
+    // A stale tap for a month already handled does nothing.
+    handleRecurring(db, id, "2026-10", "2026-11-25", "post");
+    expect(loadFinanceData(db).txns).toHaveLength(2);
   });
 
   it("rejects a category of the wrong kind and an impossible day", () => {

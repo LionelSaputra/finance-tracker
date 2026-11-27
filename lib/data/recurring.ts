@@ -1,5 +1,5 @@
 import { asc, eq } from "drizzle-orm";
-import { monthRange } from "../dates";
+import { addMonths, monthRange } from "../dates";
 import type { Db } from "../db";
 import { accounts, categories, recurring, type Recurring } from "../db/schema";
 import { DomainError, txnInputSchema } from "../validation";
@@ -7,6 +7,7 @@ import { createTransaction } from "./transactions";
 
 export type RecurringInput = { type: "income" | "expense"; amount: number; accountId: number; categoryId: number; note: string | null; dayOfMonth: number };
 export type RecurringRow = Recurring & { categoryName: string; accountName: string };
+export type DueRecurring = RecurringRow & { pendingMonth: string };
 
 /** The day it falls on in `month`: the 31st becomes the 30th in November. */
 export const dueDate = (r: Pick<Recurring, "dayOfMonth">, month: string) => {
@@ -40,19 +41,34 @@ export function listRecurring(db: Db): RecurringRow[] {
     .map(({ r, categoryName, accountName }) => ({ ...r, categoryName, accountName }));
 }
 
-/** Entries whose day has come this month and that were neither posted nor skipped yet. */
-export function dueRecurring(db: Db, today: string): RecurringRow[] {
+/**
+ * The oldest month not yet posted or skipped, looking back at most to last month, so an entry missed while
+ * the app was closed still shows up. A new entry (never handled) starts with the current month.
+ */
+export function pendingMonth(r: Pick<Recurring, "handledMonth">, today: string): string {
   const month = today.slice(0, 7);
-  return listRecurring(db).filter((r) => r.handledMonth !== month && dueDate(r, month) <= today);
+  if (!r.handledMonth) return month;
+  const next = addMonths(r.handledMonth, 1);
+  const earliest = addMonths(month, -1);
+  return next < earliest ? earliest : next;
 }
 
-/** Records this month's entry on its due date (or skips it); either way it stops being due until next month. */
-export function handleRecurring(db: Db, id: number, today: string, action: "post" | "skip"): void {
+/** Entries whose pending month's day has come and that were neither posted nor skipped for that month. */
+export function dueRecurring(db: Db, today: string): DueRecurring[] {
+  return listRecurring(db)
+    .map((r) => ({ ...r, pendingMonth: pendingMonth(r, today) }))
+    .filter((r) => dueDate(r, r.pendingMonth) <= today);
+}
+
+/**
+ * Posts (on its due date) or skips the entry for `month`, which must be the one on screen: a double tap, or a
+ * stale page after the month was handled elsewhere, does nothing instead of handling the next month.
+ */
+export function handleRecurring(db: Db, id: number, month: string, today: string, action: "post" | "skip"): void {
   db.transaction((tx) => {
     const r = tx.select().from(recurring).where(eq(recurring.id, id)).get();
-    const month = today.slice(0, 7);
     if (!r) throw new DomainError("Transaksi rutin tidak ditemukan");
-    if (r.handledMonth === month) return; // a double tap must not post twice
+    if (pendingMonth(r, today) !== month || dueDate(r, month) > today) return;
     if (action === "post") {
       createTransaction(tx as unknown as Db, { type: r.type, amount: r.amount, accountId: r.accountId, categoryId: r.categoryId, note: r.note, occurredOn: dueDate(r, month) });
     }

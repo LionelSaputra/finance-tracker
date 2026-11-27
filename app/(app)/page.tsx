@@ -18,7 +18,7 @@ import { handleRecurringAction } from "./actions";
 import { addMonths, monthOf, todayJakarta } from "@/lib/dates";
 import { getDb } from "@/lib/db";
 import { computeSnapshot, monthlySpending, type PaceStatus } from "@/lib/finance";
-import { dateLabel, monthLabel, timeWIB } from "@/lib/labels";
+import { dateLabel, monthLabel, shortMonthLabel as shortMonth, timeWIB } from "@/lib/labels";
 import { formatIDR } from "@/lib/money";
 import { ruleSuggestions } from "@/lib/suggestions";
 
@@ -27,7 +27,6 @@ const VERDICT: Record<PaceStatus, { word: string; tone: string; meaning: string 
   mepet: { word: "Mepet", tone: "text-mepet", meaning: "Belanja lebih cepat dari jalannya bulan. Rem sedikit." },
   lewat: { word: "Lewat", tone: "text-merah", meaning: "Jatah belanja bulan ini sudah habis." },
 };
-const shortMonth = (m: string) => new Intl.DateTimeFormat("id-ID", { month: "short", timeZone: "UTC" }).format(new Date(`${m}-01T00:00:00Z`));
 const nowWIB = () => new Intl.DateTimeFormat("id-ID", { hour: "2-digit", minute: "2-digit", timeZone: "Asia/Jakarta" }).format(new Date());
 
 export default async function HomePage({ searchParams }: PageProps<"/">) {
@@ -147,12 +146,12 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
                       </b>
                     </span>
                     <span className="block text-xs text-ink-3">
-                      Tgl {Number(dueDate(r, current).slice(8))} · {r.accountName}
+                      {dateLabel(dueDate(r, r.pendingMonth))} · {r.accountName}
                     </span>
                   </span>
                   <span className="flex gap-2">
-                    <ActionForm action={handleRecurringAction.bind(null, r.id, "skip")} submitLabel="Lewati" quiet className="flex" />
-                    <ActionForm action={handleRecurringAction.bind(null, r.id, "post")} submitLabel="Catat" className="flex" />
+                    <ActionForm action={handleRecurringAction.bind(null, r.id, r.pendingMonth, "skip")} submitLabel="Lewati" quiet className="flex" />
+                    <ActionForm action={handleRecurringAction.bind(null, r.id, r.pendingMonth, "post")} submitLabel="Catat" className="flex" />
                   </span>
                 </li>
               ))}

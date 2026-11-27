@@ -1,4 +1,5 @@
 import type { FinanceSnapshot } from "./finance";
+import { monthLabel as monthName } from "./labels";
 import { formatIDR } from "./money";
 
 /** kind lets a page drop suggestions it already shows elsewhere (budget rows, goals, the safe-to-trade leaf). */
@@ -7,7 +8,6 @@ export type Suggestion = { level: "info" | "warn" | "alert"; kind: "budget" | "s
 const SPIKE_PCT = 30;
 const SPIKE_MIN = 100_000;
 const order = { alert: 0, warn: 1, info: 2 } as const;
-const monthName = (m: string) => new Intl.DateTimeFormat("id-ID", { month: "long", year: "numeric", timeZone: "UTC" }).format(new Date(`${m}-01T00:00:00Z`));
 const oneDecimal = new Intl.NumberFormat("id-ID", { maximumFractionDigits: 1 });
 
 export function ruleSuggestions(s: FinanceSnapshot): Suggestion[] {

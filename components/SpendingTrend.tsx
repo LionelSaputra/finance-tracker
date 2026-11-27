@@ -1,8 +1,7 @@
 import Link from "next/link";
-import { monthLabel as monthLong, shortIDR } from "@/lib/labels";
+import { monthLabel as monthLong, shortIDR, shortMonthLabel as monthShort } from "@/lib/labels";
 import { formatIDR } from "@/lib/money";
 
-const monthShort = (m: string) => new Intl.DateTimeFormat("id-ID", { month: "short", timeZone: "UTC" }).format(new Date(`${m}-01T00:00:00Z`));
 
 /** Six months of spending as bars; the viewed month is ink, the others recede. Each bar opens that month. */
 export function SpendingTrend({ months, viewed, current }: { months: { month: string; total: number }[]; viewed: string; current: string }) {

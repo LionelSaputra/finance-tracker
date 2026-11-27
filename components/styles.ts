@@ -1,5 +1,5 @@
 // Plain module (not "use client") so server components get the strings, not client references.
-export const buttonClass = "inline-flex h-11 items-center justify-center gap-1.5 rounded-md px-4 text-sm font-semibold disabled:opacity-60";
+const buttonClass = "inline-flex h-11 items-center justify-center gap-1.5 rounded-md px-4 text-sm font-semibold disabled:opacity-60";
 export const primaryButton = `${buttonClass} bg-ink text-paper hover:bg-ink-2`;
 export const outlineButton = `${buttonClass} border-[1.5px] border-ink text-ink hover:bg-rule/50`;
 export const dangerButton = `${buttonClass} border-[1.5px] border-merah text-merah hover:bg-merah-tint`;

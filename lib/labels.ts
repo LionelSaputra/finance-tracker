@@ -13,12 +13,18 @@ export const TXN_TYPE_LABEL: Record<Transaction["type"], string> = { expense: "K
 
 const utc = (d: string) => new Date(`${d}T00:00:00Z`);
 export const monthLabel = (m: string) => new Intl.DateTimeFormat("id-ID", { month: "long", year: "numeric", timeZone: "UTC" }).format(utc(`${m}-01`));
+/** "Nov", or "Nov 2026" with the year. */
+export const shortMonthLabel = (m: string, withYear = false) =>
+  new Intl.DateTimeFormat("id-ID", { month: "short", ...(withYear ? { year: "numeric" } : {}), timeZone: "UTC" }).format(utc(`${m}-01`));
 /** "30 Jun 2027" */
 export const dateLabel = (d: string) => new Intl.DateTimeFormat("id-ID", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" }).format(utc(d));
 export const weekdayLabel = (d: string) => new Intl.DateTimeFormat("id-ID", { weekday: "long", timeZone: "UTC" }).format(utc(d));
 /** Compact rupiah for calendar cells: 375rb, 1,2jt. */
-export const shortIDR = (n: number) =>
-  n >= 1_000_000 ? `${new Intl.NumberFormat("id-ID", { maximumFractionDigits: 1 }).format(n / 1_000_000)}jt` : `${Math.round(n / 1000)}rb`;
+export const shortIDR = (n: number) => {
+  // Round to thousands first, so 999.600 reads "1jt" rather than "1000rb".
+  const k = Math.round(n / 1000);
+  return k >= 1000 ? `${new Intl.NumberFormat("id-ID", { maximumFractionDigits: 1 }).format(k / 1000)}jt` : `${k}rb`;
+};
 /** "19.40" in WIB from a SQLite UTC timestamp. */
 export const timeWIB = (sqlTs: string) =>
   new Intl.DateTimeFormat("id-ID", { hour: "2-digit", minute: "2-digit", timeZone: "Asia/Jakarta" }).format(new Date(`${sqlTs.replace(" ", "T")}Z`));

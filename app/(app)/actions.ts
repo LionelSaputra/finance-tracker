@@ -18,10 +18,10 @@ export async function askAi(month: string, _prev: ActionState, _fd: FormData): P
   return { ok: "Saran AI diperbarui" };
 }
 
-export async function handleRecurringAction(id: number, action: "post" | "skip", _prev: ActionState, _fd: FormData): Promise<ActionState> {
+export async function handleRecurringAction(id: number, month: string, action: "post" | "skip", _prev: ActionState, _fd: FormData): Promise<ActionState> {
   await requireSession();
   return guarded(() => {
-    handleRecurring(getDb(), id, todayJakarta(), action === "post" ? "post" : "skip");
+    handleRecurring(getDb(), id, month, todayJakarta(), action === "post" ? "post" : "skip");
     revalidatePath("/", "layout");
   }, action === "post" ? "Tercatat" : "Dilewati bulan ini");
 }
