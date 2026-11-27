@@ -72,19 +72,34 @@ export default async function PengaturanPage() {
             name="apiKey"
             type="password"
             autoComplete="off"
-            placeholder={ai.keySource ? "Kosongkan untuk tetap memakai key sekarang" : "sk-ant-..."}
+            placeholder={ai.keySource ? "Kosongkan untuk tetap memakai key sekarang" : "Tempel API key"}
             className={inputClass}
             aria-label="API key Anthropic"
           />
-          <select name="model" defaultValue={ai.model} className={inputClass} aria-label="Model AI">
-            {AI_MODELS.map((m) => (
-              <option key={m} value={m}>
-                {MODEL_LABEL[m]}
-              </option>
-            ))}
-          </select>
+          <label className="block text-sm text-ink-2">
+            Endpoint (kosongkan untuk Anthropic)
+            <input
+              name="baseUrl"
+              type="url"
+              inputMode="url"
+              defaultValue={ai.baseUrl ?? ""}
+              placeholder="https://api.provider-kamu.com"
+              className={`${inputClass} mt-1`}
+            />
+          </label>
+          <label className="block text-sm text-ink-2">
+            Model
+            <input name="model" list="ai-models" required defaultValue={ai.model} className={`${inputClass} mt-1`} />
+            <datalist id="ai-models">
+              {AI_MODELS.map((m) => (
+                <option key={m} value={m}>
+                  {MODEL_LABEL[m]}
+                </option>
+              ))}
+            </datalist>
+          </label>
           <p className="text-xs text-ink-3">
-            Buat key di console.anthropic.com (butuh saldo prabayar). Key disimpan di database aplikasi ini dan tidak pernah ditampilkan lagi.
+            Pakai key dari console.anthropic.com, atau dari provider yang kompatibel dengan Anthropic (isi juga endpoint dan nama modelnya). Key disimpan di database aplikasi ini dan tidak pernah ditampilkan lagi.
           </p>
         </ActionForm>
         {ai.keySource === "app" && (

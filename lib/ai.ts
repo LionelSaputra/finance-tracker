@@ -46,11 +46,28 @@ Jangan merekomendasikan saham, kripto, reksa dana, atau aset tertentu, dan janga
 
 Tulis dalam Bahasa Indonesia yang singkat dan ramah. "ringkasan" berisi 1-2 kalimat gambaran umum bulan ini.`;
 
+const JSON_INSTRUCTION = `Jawab HANYA dengan satu objek JSON tanpa teks lain, dengan bentuk: {"ringkasan": string, "saran": [{"judul": string, "detail": string, "prioritas": "tinggi" | "sedang" | "rendah"}]}.`;
+
 export const AI_MODELS = ["claude-opus-5-5", "claude-sonnet-5-5", "claude-haiku-5-5"] as const;
-const aiSettingsSchema = z.object({ apiKey: z.string().trim().nullable(), model: z.enum(AI_MODELS) });
+const aiSettingsSchema = z.object({
+  apiKey: z.string().trim().nullable(),
+  // Any model id: Anthropic-compatible providers name their models differently.
+  model: z.string().trim().regex(/^[\w.:/-]{1,100}$/, "Nama model tidak valid"),
+  baseUrl: z.string().trim().optional(),
+});
 
 const storedAi = (db: Db) =>
-  db.select({ key: settings.aiApiKey, model: settings.aiModel }).from(settings).where(eq(settings.id, 1)).get() ?? { key: null, model: null };
+  db.select({ key: settings.aiApiKey, model: settings.aiModel, baseUrl: settings.aiBaseUrl }).from(settings).where(eq(settings.id, 1)).get() ?? {
+    key: null,
+    model: null,
+    baseUrl: null,
+  };
+/** Empty = Anthropic itself; otherwise an Anthropic-compatible endpoint. */
+const resolveBaseUrl = (db: Db) => {
+  const url = storedAi(db).baseUrl || process.env.ANTHROPIC_BASE_URL || null;
+  // Anthropic's own address is not a "compatible provider": keep its full feature set.
+  return url && !/^https:\/\/api\.anthropic\.com\/?$/.test(url) ? url : null;
+};
 // Settings saved in the app win over .env.
 const resolveModel = (db: Db) => storedAi(db).model || process.env.AI_MODEL || "claude-opus-5-5";
 const resolveKey = (db: Db) => {
@@ -60,9 +77,9 @@ const resolveKey = (db: Db) => {
   return env ? { key: env, source: "env" as const } : null;
 };
 
-export function getAiConfig(db: Db): { apiKey: string; model: string } | null {
+export function getAiConfig(db: Db): { apiKey: string; model: string; baseUrl: string | null } | null {
   const k = resolveKey(db);
-  return k ? { apiKey: k.key, model: resolveModel(db) } : null;
+  return k ? { apiKey: k.key, model: resolveModel(db), baseUrl: resolveBaseUrl(db) } : null;
 }
 
 export const aiEnabled = (db: Db) => getAiConfig(db) != null;
@@ -70,15 +87,31 @@ export const aiEnabled = (db: Db) => getAiConfig(db) != null;
 /** What the settings page may show: never the key itself, only its last 4 characters. */
 export function aiSettingsView(db: Db) {
   const k = resolveKey(db);
-  return { keySource: k?.source ?? null, keyHint: k ? k.key.slice(-4) : null, model: resolveModel(db) };
+  return { keySource: k?.source ?? null, keyHint: k ? k.key.slice(-4) : null, model: resolveModel(db), baseUrl: resolveBaseUrl(db) };
 }
 
-/** apiKey: "" keeps the saved key, null removes it, otherwise replaces it. */
-export function saveAiSettings(db: Db, input: { apiKey: string | null; model: string }): void {
-  const { apiKey, model } = aiSettingsSchema.parse(input);
-  if (apiKey && !/^sk-ant-[\w-]{10,}$/.test(apiKey)) throw new DomainError("API key Anthropic diawali sk-ant-");
-  const set = apiKey === "" ? { aiModel: model } : { aiModel: model, aiApiKey: apiKey };
-  db.update(settings).set(set).where(eq(settings.id, 1)).run();
+/** apiKey: "" keeps the saved key, null removes it, otherwise replaces it. baseUrl: "" = Anthropic itself, undefined keeps it. */
+export function saveAiSettings(db: Db, input: { apiKey: string | null; model: string; baseUrl?: string }): void {
+  const parsed = aiSettingsSchema.safeParse(input);
+  if (!parsed.success) throw new DomainError(parsed.error.issues[0]?.message ?? "Isian tidak valid");
+  const { apiKey, model, baseUrl } = parsed.data;
+  if (apiKey && !/^\S{10,200}$/.test(apiKey)) throw new DomainError("API key tidak valid (minimal 10 karakter, tanpa spasi)");
+  if (baseUrl) {
+    let u: URL | null = null;
+    try {
+      u = new URL(baseUrl);
+    } catch {}
+    // The key is sent there, so only an encrypted endpoint is accepted.
+    if (!u || u.protocol !== "https:") throw new DomainError("Endpoint harus alamat https://");
+  }
+  db.update(settings)
+    .set({
+      aiModel: model,
+      ...(apiKey === "" ? {} : { aiApiKey: apiKey }),
+      ...(baseUrl === undefined ? {} : { aiBaseUrl: baseUrl.replace(/\/+$/, "") || null }),
+    })
+    .where(eq(settings.id, 1))
+    .run();
 }
 // Server-side refusal fallback exists for Opus/Sonnet; Haiku has none.
 const supportsFallback = (model: string) => /^claude-(opus|sonnet|fable)/.test(model);
@@ -118,8 +151,10 @@ export async function requestAiInsight(
     const cfg = getAiConfig(db);
     if (!cfg) return { ok: false, error: "Saran AI belum diaktifkan. Isi API key di Pengaturan." };
     // Below Nginx's proxy_read_timeout (180s), so a slow answer fails here instead of a 504 after we already paid for it.
-    client = new Anthropic({ apiKey: cfg.apiKey, timeout: 150_000, maxRetries: 1 });
+    client = new Anthropic({ apiKey: cfg.apiKey, baseURL: cfg.baseUrl ?? undefined, timeout: 150_000, maxRetries: 1 });
   }
+  // Compatible providers often lack Anthropic's beta features, so they get a plain request and are asked for JSON in words.
+  const compatible = resolveBaseUrl(db) != null;
   const snap = computeSnapshot(loadFinanceData(db), month, today);
   const summary = buildAiSummary(snap, ruleSuggestions(snap));
   const model = resolveModel(db);
@@ -129,10 +164,14 @@ export async function requestAiInsight(
     res = await client.beta.messages.create({
       model,
       max_tokens: 16000,
-      system: SYSTEM_PROMPT,
+      system: compatible ? `${SYSTEM_PROMPT}\n\n${JSON_INSTRUCTION}` : SYSTEM_PROMPT,
       messages: [{ role: "user", content: `Ringkasan keuangan:\n${JSON.stringify(summary)}` }],
-      output_config: { effort: "medium", format: { type: "json_schema", schema: RESULT_JSON_SCHEMA } },
-      ...(supportsFallback(model) ? { betas: ["server-side-fallback-2026-07-01"], fallbacks: "default" as const } : {}),
+      ...(compatible
+        ? {}
+        : {
+            output_config: { effort: "medium" as const, format: { type: "json_schema" as const, schema: RESULT_JSON_SCHEMA } },
+            ...(supportsFallback(model) ? { betas: ["server-side-fallback-2026-07-01"], fallbacks: "default" as const } : {}),
+          }),
     });
   } catch (e) {
     // Status only: never log the summary or the key.
@@ -144,7 +183,9 @@ export async function requestAiInsight(
   const text = res.content.find((b) => b.type === "text");
   let parsed: z.infer<typeof aiResultSchema> | null = null;
   try {
-    const r = aiResultSchema.safeParse(JSON.parse(text && "text" in text ? text.text : ""));
+    const raw = text && "text" in text ? text.text : "";
+    // Without structured output a model may wrap the JSON in prose or a ```json fence; take the outermost object.
+    const r = aiResultSchema.safeParse(JSON.parse(raw.slice(raw.indexOf("{"), raw.lastIndexOf("}") + 1)));
     parsed = r.success ? r.data : null;
   } catch {
     parsed = null;

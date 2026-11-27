@@ -50,6 +50,7 @@ export const settings = sqliteTable("settings", {
   passwordHash: text("password_hash"),
   aiApiKey: text("ai_api_key"),
   aiModel: text("ai_model"),
+  aiBaseUrl: text("ai_base_url"),
 });
 
 export const aiInsights = sqliteTable("ai_insights", {

@@ -43,20 +43,36 @@ describe("AI settings", () => {
     vi.stubEnv("AI_MODEL", "");
     expect(getAiConfig(db)).toBeNull();
     saveAiSettings(db, { apiKey: "sk-ant-api03-abcdefghijklmnop1234", model: "claude-haiku-5-5" });
-    expect(getAiConfig(db)).toEqual({ apiKey: "sk-ant-api03-abcdefghijklmnop1234", model: "claude-haiku-5-5" });
-    expect(aiSettingsView(db)).toEqual({ keySource: "app", keyHint: "1234", model: "claude-haiku-5-5" });
+    expect(getAiConfig(db)).toEqual({ apiKey: "sk-ant-api03-abcdefghijklmnop1234", model: "claude-haiku-5-5", baseUrl: null });
+    expect(aiSettingsView(db)).toEqual({ keySource: "app", keyHint: "1234", model: "claude-haiku-5-5", baseUrl: null });
     // Empty key field = keep the saved key; model still changes.
     saveAiSettings(db, { apiKey: "", model: "claude-opus-5-5" });
     expect(getAiConfig(db)?.apiKey).toBe("sk-ant-api03-abcdefghijklmnop1234");
     saveAiSettings(db, { apiKey: null, model: "claude-opus-5-5" });
     vi.stubEnv("ANTHROPIC_API_KEY", "sk-ant-from-env-0000000000009999");
-    expect(getAiConfig(db)).toEqual({ apiKey: "sk-ant-from-env-0000000000009999", model: "claude-opus-5-5" });
+    expect(getAiConfig(db)).toEqual({ apiKey: "sk-ant-from-env-0000000000009999", model: "claude-opus-5-5", baseUrl: null });
     expect(aiSettingsView(db).keySource).toBe("env");
   });
 
-  it("rejects keys and models that cannot work", () => {
-    expect(() => saveAiSettings(db, { apiKey: "bukan-key", model: "claude-opus-5-5" })).toThrow("API key Anthropic diawali sk-ant-");
-    expect(() => saveAiSettings(db, { apiKey: "", model: "gpt-5" })).toThrow();
+  it("accepts Anthropic-compatible keys, endpoints and model names, but rejects ones that cannot work", () => {
+    saveAiSettings(db, { apiKey: "sk-provider-0123456789abcdef", model: "claude-sonnet-4.5", baseUrl: "https://api.example.com/" });
+    expect(getAiConfig(db)).toEqual({ apiKey: "sk-provider-0123456789abcdef", model: "claude-sonnet-4.5", baseUrl: "https://api.example.com" });
+    expect(() => saveAiSettings(db, { apiKey: "pendek", model: "claude-opus-5-5" })).toThrow("API key tidak valid");
+    expect(() => saveAiSettings(db, { apiKey: "", model: "claude-opus-5-5", baseUrl: "http://api.example.com" })).toThrow("Endpoint harus alamat https://");
+    expect(() => saveAiSettings(db, { apiKey: "", model: "model dengan spasi" })).toThrow("Nama model tidak valid");
+    // Clearing the endpoint goes back to Anthropic.
+    saveAiSettings(db, { apiKey: "", model: "claude-opus-5-5", baseUrl: "" });
+    expect(getAiConfig(db)?.baseUrl).toBeNull();
+  });
+
+  it("sends a compatible endpoint a plain request and reads JSON wrapped in prose", async () => {
+    saveAiSettings(db, { apiKey: "sk-provider-0123456789abcdef", model: "claude-sonnet-4.5", baseUrl: "https://api.example.com" });
+    const { client, create } = fakeClient(async () => reply({ content: [{ type: "text", text: "Berikut sarannya:\n```json\n" + goodText + "\n```" }] }));
+    expect(await requestAiInsight(db, "2026-11", "2026-11-27", client)).toMatchObject({ ok: true });
+    const params = create.mock.calls[0][0];
+    expect(params).not.toHaveProperty("output_config");
+    expect(params).not.toHaveProperty("betas");
+    expect(String(params.system)).toContain("HANYA dengan satu objek JSON");
   });
 });
 

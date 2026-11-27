@@ -54,7 +54,7 @@ export async function aiSettingsAction(_prev: ActionState, fd: FormData): Promis
   await requireSession();
   return guarded(() => {
     // Empty key field keeps the saved key.
-    saveAiSettings(getDb(), { apiKey: formText(fd, "apiKey"), model: formText(fd, "model") });
+    saveAiSettings(getDb(), { apiKey: formText(fd, "apiKey"), model: formText(fd, "model"), baseUrl: formText(fd, "baseUrl") });
     revalidatePath("/", "layout");
   }, "Pengaturan AI tersimpan");
 }
